@@ -5,6 +5,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.auth.dependencies import get_current_user
+from app.config import settings
 from app.database import get_db
 from app.models.certificate import Certificate
 from app.models.course import Course
@@ -56,7 +57,7 @@ def request_certificate(
     db.refresh(cert)
 
     # Generate PDF
-    verify_url = f"https://devschool.hu/verify/{cert.cert_id}"
+    verify_url = f"{settings.base_url}/verify/{cert.cert_id}"
     try:
         from app.services.pdf import generate_certificate_pdf
         from app.services.qr import generate_qr_base64
