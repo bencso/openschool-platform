@@ -1,0 +1,120 @@
+from datetime import datetime, timezone
+
+import httpx
+from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi.responses import RedirectResponse
+from sqlalchemy.orm import Session
+
+from app.auth.dependencies import get_current_user
+from app.auth.jwt import create_access_token, create_refresh_token, verify_token
+from app.config import settings
+from app.database import get_db
+from app.models.user import User
+
+router = APIRouter(prefix="/api/auth", tags=["auth"])
+
+GITHUB_AUTHORIZE_URL = "https://github.com/login/oauth/authorize"
+GITHUB_TOKEN_URL = "https://github.com/login/oauth/access_token"
+GITHUB_USER_URL = "https://api.github.com/user"
+
+
+@router.get("/login")
+def auth_login():
+    """Redirect to GitHub OAuth authorization page."""
+    url = f"{GITHUB_AUTHORIZE_URL}?client_id={settings.github_client_id}&scope=read:user user:email"
+    return RedirectResponse(url=url)
+
+
+@router.get("/callback")
+def auth_callback(code: str, db: Session = Depends(get_db), response: Response = None):
+    """Handle GitHub OAuth callback: exchange code for token, create/update user, return JWT."""
+    # Exchange code for access token
+    token_response = httpx.post(
+        GITHUB_TOKEN_URL,
+        data={
+            "client_id": settings.github_client_id,
+            "client_secret": settings.github_client_secret,
+            "code": code,
+        },
+        headers={"Accept": "application/json"},
+    )
+    token_data = token_response.json()
+
+    if "access_token" not in token_data:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="GitHub OAuth failed")
+
+    # Get user info from GitHub
+    user_response = httpx.get(
+        GITHUB_USER_URL,
+        headers={"Authorization": f"Bearer {token_data['access_token']}"},
+    )
+    github_user = user_response.json()
+
+    if "id" not in github_user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Failed to get GitHub user info")
+
+    # Create or update user
+    user = db.query(User).filter(User.github_id == github_user["id"]).first()
+    if user:
+        user.last_login = datetime.now(timezone.utc)
+        user.username = github_user.get("login", user.username)
+        user.avatar_url = github_user.get("avatar_url", user.avatar_url)
+        user.email = github_user.get("email", user.email)
+    else:
+        user = User(
+            github_id=github_user["id"],
+            username=github_user.get("login", ""),
+            email=github_user.get("email"),
+            avatar_url=github_user.get("avatar_url"),
+            last_login=datetime.now(timezone.utc),
+        )
+        db.add(user)
+
+    db.commit()
+    db.refresh(user)
+
+    # Generate tokens
+    access_token = create_access_token(user.id)
+    refresh_token = create_refresh_token(user.id)
+
+    resp = Response(content='{"access_token": "' + access_token + '", "token_type": "bearer"}')
+    resp.headers["Content-Type"] = "application/json"
+    resp.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        samesite="lax",
+        max_age=7 * 24 * 60 * 60,
+    )
+    return resp
+
+
+@router.get("/me")
+def auth_me(current_user: User = Depends(get_current_user)):
+    """Return current authenticated user info."""
+    return {
+        "id": current_user.id,
+        "github_id": current_user.github_id,
+        "username": current_user.username,
+        "email": current_user.email,
+        "avatar_url": current_user.avatar_url,
+        "role": current_user.role.value,
+    }
+
+
+@router.post("/refresh")
+def auth_refresh(db: Session = Depends(get_db), response: Response = None):
+    """Issue a new access token using the refresh token cookie."""
+    from fastapi import Cookie
+
+    # This is a simplified version - in production, read from cookie
+    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Use cookie-based refresh")
+
+
+@router.post("/logout")
+def auth_logout(response: Response):
+    """Clear the refresh token cookie."""
+    response = Response(content='{"detail": "Logged out"}')
+    response.headers["Content-Type"] = "application/json"
+    response.delete_cookie(key="refresh_token")
+    return response
