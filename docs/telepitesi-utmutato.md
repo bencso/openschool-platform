@@ -1,5 +1,7 @@
 # OpenSchool Platform — Telepítési útmutató
 
+> 📖 **Dokumentáció:** [Főoldal](../README.md) · [Architektúra](architektura.md) · **Telepítés** · [Fejlesztői környezet](fejlesztoi-kornyezet.md) · [Roadmap](jovokep-es-fejlesztesi-terv.md) · [Hozzájárulás](../CONTRIBUTING.md)
+
 Ez az útmutató a helyi fejlesztést, a staging és az éles (production) üzembe helyezést ismerteti.
 
 ---

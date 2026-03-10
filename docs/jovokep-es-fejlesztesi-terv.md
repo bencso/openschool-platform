@@ -1,12 +1,14 @@
 # OpenSchool Platform — Jövőkép és fejlesztési terv
 
-Ez a dokumentum összefoglalja a OpenSchool platform teljes vízióját a [kurzuskeretrendszer](../../testing/) alapján, és felméri, mi van készen, mi hiányzik, és mi a tervezett fejlesztési irány.
+> 📖 **Dokumentáció:** [Főoldal](../README.md) · [Architektúra](architektura.md) · [Telepítés](telepitesi-utmutato.md) · [Fejlesztői környezet](fejlesztoi-kornyezet.md) · **Roadmap** · [Hozzájárulás](../CONTRIBUTING.md)
+
+Ez a dokumentum összefoglalja az OpenSchool platform teljes vízióját, és felméri, mi van készen, mi hiányzik, és mi a tervezett fejlesztési irány.
 
 ---
 
-## A OpenSchool elve
+## Az OpenSchool elve
 
-A OpenSchool nem egy hagyományos e-learning platform. A diákok **ugyanazokkal az eszközökkel dolgoznak, amelyeket az iparban is használnak**: GitHub, Discord, VS Code, Docker, pytest, CI/CD. A cél nem az, hogy egy feladatbeadó rendszert tanuljanak meg, hanem hogy **a munkafolyamat maga legyen a tananyag része**.
+Az OpenSchool nem egy hagyományos e-learning platform. A diákok **ugyanazokkal az eszközökkel dolgoznak, amelyeket az iparban is használnak**: GitHub, Discord, VS Code, Docker, pytest, CI/CD. A cél nem az, hogy egy feladatbeadó rendszert tanuljanak meg, hanem hogy **a munkafolyamat maga legyen a tananyag része**.
 
 | Iskolai verzió | Ipari megfelelő |
 |----------------|-----------------|

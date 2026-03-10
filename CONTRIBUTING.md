@@ -1,6 +1,8 @@
-# Hozzájárulás a OpenSchool Platformhoz
+# Hozzájárulás az OpenSchool Platformhoz
 
-Köszönjük, hogy hozzá szeretnél járulni a OpenSchool fejlesztéséhez! Ez az útmutató segít az indulásban.
+> 📖 **Dokumentáció:** [Főoldal](README.md) · [Architektúra](docs/architektura.md) · [Telepítés](docs/telepitesi-utmutato.md) · [Fejlesztői környezet](docs/fejlesztoi-kornyezet.md) · [Roadmap](docs/jovokep-es-fejlesztesi-terv.md) · **Hozzájárulás**
+
+Köszönjük, hogy hozzá szeretnél járulni az OpenSchool fejlesztéséhez! Ez az útmutató segít az indulásban.
 
 ## Hogyan indulj el
 
@@ -13,6 +15,10 @@ cd openschool-platform
 ```
 
 ### 2. Lokális fejlesztői környezet felállítása
+
+Részletes útmutató: [Fejlesztői környezet beállítása](docs/fejlesztoi-kornyezet.md)
+
+Gyors összefoglalás:
 
 ```bash
 # Python virtuális környezet

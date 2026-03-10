@@ -1,6 +1,8 @@
 # Fejlesztői környezet beállítása
 
-Ez az útmutató lépésről lépésre végigvezet a OpenSchool Platform fejlesztői környezetének felállításán.
+> 📖 **Dokumentáció:** [Főoldal](../README.md) · [Architektúra](architektura.md) · [Telepítés](telepitesi-utmutato.md) · **Fejlesztői környezet** · [Roadmap](jovokep-es-fejlesztesi-terv.md) · [Hozzájárulás](../CONTRIBUTING.md)
+
+Ez az útmutató lépésről lépésre végigvezet az OpenSchool Platform fejlesztői környezetének felállításán.
 
 ## Előfeltételek
 

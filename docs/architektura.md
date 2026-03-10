@@ -1,8 +1,10 @@
 # OpenSchool Platform — Architektúra
 
+> 📖 **Dokumentáció:** [Főoldal](../README.md) · **Architektúra** · [Telepítés](telepitesi-utmutato.md) · [Fejlesztői környezet](fejlesztoi-kornyezet.md) · [Roadmap](jovokep-es-fejlesztesi-terv.md) · [Hozzájárulás](../CONTRIBUTING.md)
+
 ## Rendszer áttekintés
 
-A OpenSchool egy oktatási platform, ahol a diákok valódi fejlesztői munkafolyamatokon keresztül tanulnak programozni. A platform kurzusokat kezel, követi a haladást, GitHub-bal integrálódik az azonosításhoz és a CI-alapú értékeléshez, valamint hitelesíthető tanúsítványokat állít ki.
+Az OpenSchool egy oktatási platform, ahol a diákok valódi fejlesztői munkafolyamatokon keresztül tanulnak programozni. A platform kurzusokat kezel, követi a haladást, GitHub-bal integrálódik az azonosításhoz és a CI-alapú értékeléshez, valamint hitelesíthető tanúsítványokat állít ki.
 
 ```
 ┌─────────────┐    ┌─────────────┐    ┌─────────────────┐

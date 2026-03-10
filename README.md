@@ -117,8 +117,6 @@ Szívesen fogadjuk a hozzájárulásokat! Olvasd el a [CONTRIBUTING.md](CONTRIBU
 
 MIT — lásd [LICENSE](LICENSE)
 
-A `good first issue` címkéjű [issue-k](../../issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) ideálisak kezdőknek.
-
 ## Licensz
 
 A projekt az [MIT License](LICENSE) alatt érhető el.
