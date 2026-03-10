@@ -133,9 +133,15 @@ import Layout from '../../layouts/Layout.astro';
       detailsEl.innerHTML = `
         <div style="margin-bottom:16px;">
           <h4 style="margin-bottom:8px;">Modul hozzáadása</h4>
-          <form class="add-module-form" data-course-id="${courseId}" style="display:flex;gap:8px;align-items:end;">
-            <input type="text" placeholder="Modul neve" required class="module-name" style="padding:6px 10px;border:1px solid var(--color-border);border-radius:4px;" />
-            <input type="number" placeholder="Sorrend" value="${course.modules.length + 1}" class="module-order" style="padding:6px 10px;border:1px solid var(--color-border);border-radius:4px;width:80px;" />
+          <form class="add-module-form" data-course-id="${courseId}" style="display:flex;gap:8px;align-items:end;flex-wrap:wrap;">
+            <div>
+              <label style="display:block;font-size:0.75rem;color:var(--color-text-light);margin-bottom:2px;">Modul neve</label>
+              <input type="text" placeholder="pl. Alapok" required class="module-name" style="padding:6px 10px;border:1px solid var(--color-border);border-radius:4px;" />
+            </div>
+            <div>
+              <label style="display:block;font-size:0.75rem;color:var(--color-text-light);margin-bottom:2px;">Sorrend</label>
+              <input type="number" placeholder="#" value="${course.modules.length + 1}" class="module-order" style="padding:6px 10px;border:1px solid var(--color-border);border-radius:4px;width:70px;" title="A modul megjelenési sorrendje a kurzuson belül" />
+            </div>
             <button type="submit" class="btn btn-primary" style="padding:6px 14px;font-size:0.85rem;">Hozzáadás</button>
           </form>
         </div>
@@ -155,10 +161,22 @@ import Layout from '../../layouts/Layout.astro';
               `).join('')}
             </ul>
             <form class="add-exercise-form" data-course-id="${courseId}" data-module-id="${m.id}" style="display:flex;gap:6px;flex-wrap:wrap;align-items:end;margin-top:8px;">
-              <input type="text" placeholder="Feladat neve" required class="ex-name" style="padding:4px 8px;border:1px solid var(--color-border);border-radius:4px;font-size:0.85rem;" />
-              <input type="text" placeholder="repo_prefix" class="ex-repo" style="padding:4px 8px;border:1px solid var(--color-border);border-radius:4px;font-size:0.85rem;width:130px;" />
-              <input type="text" placeholder="classroom_url" class="ex-classroom" style="padding:4px 8px;border:1px solid var(--color-border);border-radius:4px;font-size:0.85rem;width:180px;" />
-              <input type="number" placeholder="#" value="${m.exercises.length + 1}" class="ex-order" style="padding:4px 8px;border:1px solid var(--color-border);border-radius:4px;width:50px;font-size:0.85rem;" />
+              <div>
+                <label style="display:block;font-size:0.75rem;color:var(--color-text-light);margin-bottom:2px;">Feladat neve</label>
+                <input type="text" placeholder="pl. Hello World" required class="ex-name" style="padding:4px 8px;border:1px solid var(--color-border);border-radius:4px;font-size:0.85rem;" />
+              </div>
+              <div>
+                <label style="display:block;font-size:0.75rem;color:var(--color-text-light);margin-bottom:2px;">Repo prefix</label>
+                <input type="text" placeholder="pl. python-hello-world" class="ex-repo" style="padding:4px 8px;border:1px solid var(--color-border);border-radius:4px;font-size:0.85rem;width:160px;" title="GitHub Classroom assignment prefix — a repó neve: {prefix}-{username}" />
+              </div>
+              <div>
+                <label style="display:block;font-size:0.75rem;color:var(--color-text-light);margin-bottom:2px;">Classroom link</label>
+                <input type="text" placeholder="https://classroom.github.com/a/..." class="ex-classroom" style="padding:4px 8px;border:1px solid var(--color-border);border-radius:4px;font-size:0.85rem;width:220px;" title="GitHub Classroom meghívó link — tanulók ezt kapják" />
+              </div>
+              <div>
+                <label style="display:block;font-size:0.75rem;color:var(--color-text-light);margin-bottom:2px;">Sorrend</label>
+                <input type="number" placeholder="#" value="${m.exercises.length + 1}" class="ex-order" style="padding:4px 8px;border:1px solid var(--color-border);border-radius:4px;width:55px;font-size:0.85rem;" title="A feladat megjelenési sorrendje a modulon belül" />
+              </div>
               <button type="submit" class="btn btn-primary" style="padding:4px 12px;font-size:0.85rem;">+ Feladat</button>
             </form>
           </div>
