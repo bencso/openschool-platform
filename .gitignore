@@ -10,6 +10,8 @@ env/
 
 # Environment variables
 .env
+.env.prod
+.env.staging
 
 # Database
 *.db
