@@ -1,10 +1,12 @@
-name: openschool
+# Staging environment — standalone compose file
+# Usage: docker compose -f docker-compose.staging.yml --env-file .env.staging up --build -d
+name: openschool-staging
 
 services:
   backend:
     build: ./backend
     restart: always
-    env_file: .env.prod
+    env_file: .env.staging
     depends_on:
       - db
     healthcheck:
@@ -22,29 +24,20 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME}
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - staging_pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 10s
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "3"
 
   nginx:
     image: nginx:alpine
     restart: always
-    ports:
-      - "80:80"
-      - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
-      - frontend_build:/usr/share/nginx/html
-      - /etc/letsencrypt:/etc/letsencrypt:ro
+      - ./nginx/nginx-staging.conf:/etc/nginx/nginx.conf
+      - staging_frontend_build:/usr/share/nginx/html
     depends_on:
       backend:
         condition: service_healthy
@@ -63,11 +56,11 @@ services:
     build: ./frontend
     restart: always
     volumes:
-      - frontend_build:/usr/share/nginx/html
+      - staging_frontend_build:/usr/share/nginx/html
 
 volumes:
-  pgdata:
-  frontend_build:
+  staging_pgdata:
+  staging_frontend_build:
 
 networks:
   openschool-net:
