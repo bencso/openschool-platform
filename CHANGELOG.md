@@ -57,6 +57,8 @@
 - Update roadmap to reflect current state
 - Regenerate CHANGELOG.md
 - Add API reference, database schema, testing guide, and env vars reference
+- Regenerate CHANGELOG.md
+- Add question and documentation issue templates
 
 ### ⚙️ Miscellaneous Tasks
 
