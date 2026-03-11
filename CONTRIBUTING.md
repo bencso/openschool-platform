@@ -1,6 +1,6 @@
 # Hozzájárulás az OpenSchool Platformhoz
 
-> 📖 **Dokumentáció:** [Főoldal](README.md) · [Architektúra](docs/architektura.md) · [Telepítés](docs/telepitesi-utmutato.md) · [Fejlesztői környezet](docs/fejlesztoi-kornyezet.md) · [Roadmap](docs/jovokep-es-fejlesztesi-terv.md) · [Felhasználói útmutató](docs/felhasznaloi-utmutato.md) · [GitHub Classroom](docs/github-classroom-integraciot.md) · **Hozzájárulás**
+> 📖 **Dokumentáció:** [Főoldal](README.md) · [Architektúra](docs/architektura.md) · [Telepítés](docs/telepitesi-utmutato.md) · [Fejlesztői útmutató](docs/fejlesztoi-utmutato.md) · [Roadmap](docs/jovokep-es-fejlesztesi-terv.md) · [Felhasználói útmutató](docs/felhasznaloi-utmutato.md) · [GitHub Classroom](docs/github-classroom-integraciot.md) · **Hozzájárulás**
 
 Köszönjük, hogy hozzá szeretnél járulni az OpenSchool fejlesztéséhez! Ez az útmutató segít az indulásban.
 
@@ -16,7 +16,7 @@ cd openschool-platform
 
 ### 2. Lokális fejlesztői környezet felállítása
 
-Részletes útmutató: [Fejlesztői környezet beállítása](docs/fejlesztoi-kornyezet.md)
+Részletes útmutató: [Fejlesztői útmutató](docs/fejlesztoi-utmutato.md)
 
 Gyors összefoglalás:
 

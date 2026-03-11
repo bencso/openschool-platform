@@ -1,6 +1,6 @@
-# Fejlesztői környezet beállítása
+# Fejlesztői útmutató
 
-> 📖 **Dokumentáció:** [Főoldal](../README.md) · [Architektúra](architektura.md) · [Telepítés](telepitesi-utmutato.md) · **Fejlesztői környezet** · [Roadmap](jovokep-es-fejlesztesi-terv.md) · [Felhasználói útmutató](felhasznaloi-utmutato.md) · [GitHub Classroom](github-classroom-integraciot.md) · [Hozzájárulás](../CONTRIBUTING.md)
+> 📖 **Dokumentáció:** [Főoldal](../README.md) · [Architektúra](architektura.md) · [Telepítés](telepitesi-utmutato.md) · **Fejlesztői útmutató** · [Roadmap](jovokep-es-fejlesztesi-terv.md) · [Felhasználói útmutató](felhasznaloi-utmutato.md) · [GitHub Classroom](github-classroom-integraciot.md) · [Hozzájárulás](../CONTRIBUTING.md)
 
 Ez az útmutató lépésről lépésre végigvezet az OpenSchool Platform fejlesztői környezetének felállításán.
 
@@ -444,7 +444,7 @@ openschool-platform/
 │
 └── docs/
     ├── architektura.md           # Rendszer architektúra
-    ├── fejlesztoi-kornyezet.md   # ← Ez a dokumentum
+│   ├── fejlesztoi-utmutato.md   # ← Ez a dokumentum
     ├── jovokep-es-fejlesztesi-terv.md
     └── telepitesi-utmutato.md    # Üzemeltetési útmutató
 ```
@@ -522,19 +522,99 @@ chore: update dependencies
 
 A `.github/workflows/ci.yml` automatikusan:
 
-1. Python 3.12 környezet felállítása
-2. Függőségek telepítése
-3. `pytest -v` futtatása
+1. **Lint lépés** — `ruff check` és `ruff format --check`
+2. **Teszt lépés** — `pytest -v --tb=short` (csak ha a lint sikeres)
 
 ### CD (main branch push)
 
 A `.github/workflows/cd.yml` automatikusan:
 
-1. SSH kapcsolat a VPS-hez
-2. `git pull` a szerveren
-3. Docker konténerek újraépítése
-4. Migrációk futtatása
-5. Health check
+1. Tesztek futtatása (gate — deploy csak sikeres tesztek után)
+2. SSH kapcsolat a VPS-hez
+3. `git pull origin main`
+4. Docker konténerek újraépítése
+5. Migrációk futtatása
+6. Health check
+
+### CI/CD állapot ellenőrzése
+
+Mindig ellenőrizd, hogy a CI zöld, mielőtt merge-ölsz:
+
+1. **GitHub webes felület:** Repó → Actions fül → válaszd ki a workflow futtatást
+2. **PR-ben:** A build státusz a PR alján látható (zöld pipák / piros X-ek)
+3. **Badge (opcionális):** A README-be tehetsz CI badge-et:
+   ```markdown
+   ![CI](https://github.com/ghemrich/openschool-platform/actions/workflows/ci.yml/badge.svg)
+   ```
+
+Ha a CI piros:
+- Kattints a hibás lépésre a részletes logokért
+- A lint hibák formázási problémák — futtasd: `make format`
+- Teszt hibák — futtasd lokálisan: `make test`
+
+---
+
+## 15. Logok és hibakeresés
+
+### Backend logok
+
+```bash
+# Logok követése valós időben
+docker compose logs -f backend
+
+# Utolsó 100 sor
+docker compose logs --tail=100 backend
+
+# Minden szolgáltatás logjai
+docker compose logs -f
+
+# Adatbázis logok
+docker compose logs db
+```
+
+### Konténer állapot
+
+```bash
+# Futó szolgáltatások állapota
+docker compose ps
+
+# Egy konténer részletes információi
+docker compose inspect backend
+
+# Erőforrás-használat
+docker stats
+```
+
+### Adatbázis debug
+
+```bash
+# PostgreSQL konzol
+docker compose exec db psql -U openschool -d openschool
+
+# Táblák listázása
+\dt
+
+# Felhasználók megnézése
+SELECT id, username, role FROM users;
+
+# Migrációs állapot
+docker compose exec backend alembic current
+```
+
+### Production vs development különbségek
+
+| Szempont | Fejlesztés | Produkció |
+|----------|------------|------------|
+| Docker Compose fájl | `docker-compose.yml` | `docker-compose.prod.yml` |
+| Környezeti fájl | `.env` | `.env.prod` |
+| `ENVIRONMENT` | `development` | `production` |
+| Swagger UI (`/docs`) | ✅ Elérhető | ❌ Kikapcsolt |
+| uvicorn `--reload` | Igen (auto-reload) | Nem |
+| Backend port (8000) | Kintől is elérhető | Csak belső |
+| DB port (5432) | Kintől is elérhető | Csak belső |
+| Health check | Nincs | 30s interval |
+| Restart policy | Nincs | `always` |
+| Log rotáció | Nincs | 10MB / 3 fájl |
 
 ---
 

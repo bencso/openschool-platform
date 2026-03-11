@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from app.auth.dependencies import get_current_user, require_role
@@ -14,20 +14,20 @@ router = APIRouter(prefix="/api/courses", tags=["courses"])
 
 
 class CourseCreate(BaseModel):
-    name: str
-    description: str = ""
+    name: str = Field(..., min_length=1, max_length=200)
+    description: str = Field(default="", max_length=5000)
 
 
 class ModuleCreate(BaseModel):
-    name: str
-    order: int = 0
+    name: str = Field(..., min_length=1, max_length=200)
+    order: int = Field(default=0, ge=0)
 
 
 class ExerciseCreate(BaseModel):
-    name: str
-    repo_prefix: str = ""
-    classroom_url: str = ""
-    order: int = 0
+    name: str = Field(..., min_length=1, max_length=200)
+    repo_prefix: str = Field(default="", max_length=200)
+    classroom_url: str = Field(default="", max_length=500)
+    order: int = Field(default=0, ge=0)
     required: bool = True
 
 

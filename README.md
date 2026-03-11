@@ -108,7 +108,7 @@ Szívesen fogadjuk a hozzájárulásokat! Olvasd el a [CONTRIBUTING.md](CONTRIBU
 |---|---|
 | [Architektúra](docs/architektura.md) | Rendszer felépítés, adatmodell, auth folyamat, API struktúra |
 | [Telepítési útmutató](docs/telepitesi-utmutato.md) | Helyi fejlesztés, staging, éles VPS telepítés, SSL, backup |
-| [Fejlesztői környezet](docs/fejlesztoi-kornyezet.md) | Python venv, VS Code, pre-commit, Ruff, pytest, Docker |
+| [Fejlesztői útmutató](docs/fejlesztoi-utmutato.md) | Python venv, VS Code, pre-commit, Ruff, pytest, Docker, CI/CD, logok |
 | [Jövőkép és fejlesztési terv](docs/jovokep-es-fejlesztesi-terv.md) | Kurzusok, megvalósított funkciók, roadmap |
 | [Felhasználói útmutató](docs/felhasznaloi-utmutato.md) | Oldalak, gombok, felhasználói folyamatok, admin panel |
 | [GitHub Classroom integráció](docs/github-classroom-integraciot.md) | Feladatok összekötése, repo_prefix, webhook, tanári útmutató |

@@ -1,6 +1,6 @@
 # OpenSchool Platform — Telepítési útmutató
 
-> 📖 **Dokumentáció:** [Főoldal](../README.md) · [Architektúra](architektura.md) · **Telepítés** · [Fejlesztői környezet](fejlesztoi-kornyezet.md) · [Roadmap](jovokep-es-fejlesztesi-terv.md) · [Felhasználói útmutató](felhasznaloi-utmutato.md) · [GitHub Classroom](github-classroom-integraciot.md) · [Hozzájárulás](../CONTRIBUTING.md)
+> 📖 **Dokumentáció:** [Főoldal](../README.md) · [Architektúra](architektura.md) · **Telepítés** · [Fejlesztői útmutató](fejlesztoi-utmutato.md) · [Roadmap](jovokep-es-fejlesztesi-terv.md) · [Felhasználói útmutató](felhasznaloi-utmutato.md) · [GitHub Classroom](github-classroom-integraciot.md) · [Hozzájárulás](../CONTRIBUTING.md)
 
 Ez az útmutató a helyi fejlesztést, a staging és az éles (production) üzembe helyezést ismerteti.
 
@@ -134,6 +134,8 @@ SECRET_KEY=change-me-in-production    # JWT aláíró kulcs — élesben random 
 # Platform
 BASE_URL=http://localhost              # Tanúsítványok és QR kódok URL-jéhez
                                        # Élesben: https://yourdomain.com
+ENVIRONMENT=development                # development vagy production
+ALLOWED_ORIGINS=http://localhost,http://localhost:4321  # CORS engedélyezett eredetek
 
 # GitHub OAuth
 GITHUB_CLIENT_ID=your_client_id
@@ -152,6 +154,8 @@ GITHUB_CLIENT_SECRET=your_client_secret
 | `DB_USER` | Igen | PostgreSQL felhasználónév (docker-compose használja) |
 | `DB_PASSWORD` | Igen | PostgreSQL jelszó (docker-compose használja) |
 | `DB_NAME` | Igen | PostgreSQL adatbázisnév (docker-compose használja) |
+| `ENVIRONMENT` | Nem | `development` vagy `production` — élesben kikapcsolja a Swagger UI-t |
+| `ALLOWED_ORIGINS` | Nem | CORS engedélyezett eredetek, vesszővel elválasztva (pl. `https://yourdomain.com`) |
 
 ---
 
@@ -282,8 +286,11 @@ nano .env
 DATABASE_URL=postgresql://openschool:NAGYON_EROS_JELSZO@db:5432/openschool
 SECRET_KEY=$(openssl rand -hex 32)
 BASE_URL=https://yourdomain.com
+ENVIRONMENT=production
+ALLOWED_ORIGINS=https://yourdomain.com
 GITHUB_CLIENT_ID=production_client_id
 GITHUB_CLIENT_SECRET=production_client_secret
+GITHUB_WEBHOOK_SECRET=$(openssl rand -hex 20)
 DB_USER=openschool
 DB_PASSWORD=NAGYON_EROS_JELSZO
 DB_NAME=openschool
@@ -424,28 +431,37 @@ gunzip < backup_20260310.sql.gz | docker compose exec -T db psql -U openschool o
 
 ### CI (Folyamatos integráció)
 
-Minden push és PR esetén fut a `main` ágra:
-- Kód checkout
-- Python 3.12 beállítása
-- Függőségek telepítése
-- `pytest -v` futtatása
+Minden push (`main`, `develop`) és PR esetén fut:
+
+1. **Lint lépés** — `ruff check` és `ruff format --check` ellenőrzés
+2. **Teszt lépés** — `pytest -v --tb=short` (csak ha a lint sikeres)
+
+A tesztek SQLite-ot használnak, nem igényelnek PostgreSQL-t.
 
 ### CD (Folyamatos telepítés)
 
-Push esetén fut a `main` vagy `develop` ágra — **csak ha a GitHub Secrets be van állítva**:
+Push esetén a `main` ágra — **csak ha a tesztek sikeresek és a `VPS_HOST` be van állítva**:
 
-Szükséges GitHub Secrets:
+1. Tesztek futtatása (gate)
+2. SSH kapcsolat a VPS-hez
+3. `git pull origin main`
+4. Docker konténerek újraépítése
+5. Alembic migrációk futtatása
+6. Health check (`curl -f http://localhost:8000/health`)
 
-| Secret | Leírás |
-|--------|--------|
-| `VPS_HOST` | VPS IP-cím vagy hosztnév |
-| `VPS_USER` | SSH felhasználónév a VPS-en |
-| `VPS_SSH_KEY` | Privát SSH kulcs a VPS eléréséhez |
+Szükséges GitHub beállítások:
+
+| Típus | Név | Leírás |
+|-------|--------|--------|
+| Variable | `VPS_HOST` | VPS IP-cím vagy hosztnév (Settings → Variables) |
+| Secret | `VPS_USER` | SSH felhasználónév a VPS-en |
+| Secret | `VPS_SSH_KEY` | Privát SSH kulcs a VPS eléréséhez |
 
 Beállítás:
-1. GitHub repó → Settings → Secrets and variables → Actions
-2. Add hozzá mindegyik secret-et
-3. A következő push a `main`-re automatikusan telepít a VPS-re
+1. GitHub repó → Settings → Environments → `production` létrehozása
+2. Settings → Secrets and variables → Actions → Secrets-be: `VPS_USER`, `VPS_SSH_KEY`
+3. Settings → Secrets and variables → Actions → Variables-be: `VPS_HOST`
+4. A következő push a `main`-re automatikusan telepít
 
 ---
 
@@ -494,3 +510,22 @@ docker compose restart nginx
 
 - Ellenőrizd, hogy a `backend/data/` könyvtár létezik és írható
 - Nézd meg a backend logokat a PDF generálási hibákért
+
+---
+
+## Éles rendszer biztonsági ellenőrzőlista
+
+Mielőtt a platformot éles forgalomba engeded, ellenőrizd:
+
+| Elem | Ellenőrzés |
+|------|------------|
+| `SECRET_KEY` | Egyedi, véletlenszerű, legalább 32 karakter (`openssl rand -hex 32`) |
+| `ENVIRONMENT` | `production` értékre állítva (kikapcsolja a Swagger UI-t) |
+| `ALLOWED_ORIGINS` | Csak az éles domain(ek) vannak felsorolva |
+| `GITHUB_WEBHOOK_SECRET` | Be van állítva, megegyezik a GitHub webhook konfigurációval |
+| `DB_PASSWORD` | Erős, egyedi jelszó (nem az alapértelmezett) |
+| HTTPS | Let's Encrypt tanúsítvány bekonfigurálva, HTTP→HTTPS átirányítás |
+| OAuth callback | Az éles domain-re mutat (`https://yourdomain.com/api/auth/callback`) |
+| Backup | Napi `pg_dump` cron job beállítva |
+| Tűzfal | Csak 80/443 port nyitva kívülről, PostgreSQL (5432) nem elérhető |
+| DNS | A domain A rekord a VPS IP-re mutat |

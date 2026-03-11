@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
@@ -80,7 +80,7 @@ def auth_callback(code: str, db: Session = Depends(get_db), response: Response =
     refresh_token = create_refresh_token(user.id)
 
     # Redirect to frontend with token in URL fragment (not sent to server)
-    redirect_url = f"/login?token={access_token}"
+    redirect_url = f"/login#token={access_token}"
     resp = RedirectResponse(url=redirect_url, status_code=302)
     resp.set_cookie(
         key="refresh_token",
@@ -106,11 +106,28 @@ def auth_me(current_user: User = Depends(get_current_user)):
 
 
 @router.post("/refresh")
-def auth_refresh(db: Session = Depends(get_db), response: Response = None):
+def auth_refresh(request: Request, db: Session = Depends(get_db)):
     """Issue a new access token using the refresh token cookie."""
+    from app.auth.jwt import verify_token
 
-    # This is a simplified version - in production, read from cookie
-    raise HTTPException(status_code=status.HTTP_501_NOT_IMPLEMENTED, detail="Use cookie-based refresh")
+    refresh_token = request.cookies.get("refresh_token")
+    if not refresh_token:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="No refresh token")
+
+    try:
+        token_data = verify_token(refresh_token)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token")
+
+    if token_data.get("payload", {}).get("type") != "refresh":
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Not a refresh token")
+
+    user = db.query(User).filter(User.id == token_data["user_id"]).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
+
+    new_access_token = create_access_token(user.id)
+    return {"access_token": new_access_token, "token_type": "bearer"}
 
 
 @router.post("/logout")

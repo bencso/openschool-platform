@@ -98,7 +98,7 @@ def test_callback_with_valid_code(client, db_session):
             response = client.get("/api/auth/callback?code=valid_code", follow_redirects=False)
 
     assert response.status_code == 302
-    assert "/login?token=" in response.headers["location"]
+    assert "/login#token=" in response.headers["location"]
 
     user = db_session.query(User).filter(User.github_id == 67890).first()
     assert user is not None
@@ -132,7 +132,7 @@ def test_existing_user_login_updates_last_login(client, db_session, test_user):
             response = client.get("/api/auth/callback?code=valid_code", follow_redirects=False)
 
     assert response.status_code == 302
-    assert "/login?token=" in response.headers["location"]
+    assert "/login#token=" in response.headers["location"]
     db_session.refresh(test_user)
     assert test_user.last_login is not None
 
