@@ -173,28 +173,6 @@ A kurzuskeretrendszer Discord szervert használ a kommunikációhoz, heti szála
 - [ ] Discord szerver meghívó link a felületen
 - [ ] Közlemények kezelése a platformon belül (admin felület)
 
-**Csatorna struktúra a kurzuskeretrendszerből:**
-
-```
-📋 INFORMÁCIÓK
-  #szabályzat
-  #közlemények
-  #hasznos-linkek
-
-🐍 PYTHON 10
-  #python10-általános
-  #python10-segítség (heti szálak)
-  #python10-megoldások
-
-⚡ BACKEND 13
-  #backend13-általános
-  #backend13-segítség (heti szálak)
-  #backend13-megoldások
-
-💬 KÖZÖSSÉG
-  #általános
-```
-
 ### 🟠 2. fázis — Tanári eszközök
 
 - [ ] Tanári dashboard: összes diák haladása egy helyen
