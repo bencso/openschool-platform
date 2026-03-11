@@ -64,7 +64,9 @@ def test_list_users(client, admin, student, mentor):
     token = create_access_token(admin.id)
     response = client.get("/api/admin/users", headers={"Authorization": f"Bearer {token}"})
     assert response.status_code == 200
-    users = response.json()
+    body = response.json()
+    assert body["total"] == 3
+    users = body["data"]
     assert len(users) == 3
     usernames = [u["username"] for u in users]
     assert "adminuser" in usernames

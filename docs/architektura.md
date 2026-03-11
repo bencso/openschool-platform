@@ -6,16 +6,13 @@
 
 Az OpenSchool egy oktatási platform, ahol a diákok valódi fejlesztői munkafolyamatokon keresztül tanulnak programozni. A platform kurzusokat kezel, követi a haladást, GitHub-bal integrálódik az azonosításhoz és a CI-alapú értékeléshez, valamint hitelesíthető tanúsítványokat állít ki.
 
-```
-┌─────────────┐    ┌─────────────┐    ┌─────────────────┐
-│   Böngésző  │───▶│    nginx     │───▶│   FastAPI        │
-│   (Diák)    │◀───│  (port 80)  │◀───│  (port 8000)     │
-└─────────────┘    └──────┬──────┘    └────────┬─────────┘
-                          │                     │
-                   ┌──────┴──────┐       ┌──────┴──────┐
-                   │ Astro       │       │ PostgreSQL  │
-                   │ statikus    │       │  (port 5432)│
-                   └─────────────┘       └─────────────┘
+```mermaid
+graph LR
+  Browser["Böngésző (Diák)"] -->|HTTP| Nginx["nginx :80"]
+  Nginx -->|"/api/*, /verify/*"| FastAPI["FastAPI :8000"]
+  Nginx -->|"statikus fájlok"| Astro["Astro build"]
+  FastAPI --> PostgreSQL["PostgreSQL :5432"]
+  FastAPI -->|"OAuth, CI check"| GitHub["GitHub API"]
 ```
 
 ### Kérés útvonala
@@ -65,26 +62,24 @@ backend/
 
 ### Azonosítási folyamat
 
-```
-Diák rákattint a "Bejelentkezés" gombra
-       │
-       ▼
-GET /api/auth/login
-       │
-       ▼ (átirányítás)
-GitHub OAuth hozzájárulási képernyő
-       │
-       ▼ (átirányítás ?code=... paraméterrel)
-GET /api/auth/callback?code=xxx
-       │
-       ├─ Code csere GitHub access tokenre
-       ├─ Felhasználói adatok lekérdezése a GitHub API-ból
-       ├─ Felhasználó létrehozása vagy frissítése az adatbázisban
-       ├─ JWT access token generálás (30 perc érvényesség)
-       ├─ JWT refresh token generálás (7 nap, httpOnly cookie)
-       │
-       ▼ (302 átirányítás)
-/login?token=eyJ... → A frontend eltárolja a tokent a localStorage-ban
+```mermaid
+sequenceDiagram
+  participant D as Diák (böngésző)
+  participant B as FastAPI backend
+  participant G as GitHub OAuth
+
+  D->>B: GET /api/auth/login
+  B-->>D: 302 → GitHub authorize URL
+  D->>G: Hozzájárulás megadása
+  G-->>D: 302 → /api/auth/callback?code=xxx
+  D->>B: GET /api/auth/callback?code=xxx
+  B->>G: Code csere access tokenre
+  G-->>B: GitHub access token
+  B->>G: Felhasználói adatok lekérdezése
+  G-->>B: Profil (id, username, email, avatar)
+  B->>B: User létrehozás/frissítés + JWT generálás
+  B-->>D: 302 → /login#token=eyJ... (+ refresh cookie)
+  D->>D: Token mentése localStorage-ba
 ```
 
 ### Szerepkör-alapú hozzáférés
@@ -97,16 +92,16 @@ GET /api/auth/callback?code=xxx
 
 ### Adatmodell
 
-```
-User ──────────────────┐
- │                      │
- ├── Enrollment ◀──── Course
- │                      │
- ├── Progress           ├── Module
- │      │               │     │
- │      └─────────────▶ └── Exercise
- │
- └── Certificate ◀──── Course
+```mermaid
+erDiagram
+  User ||--o{ Enrollment : "beiratkozik"
+  User ||--o{ Progress : "haladás"
+  User ||--o{ Certificate : "tanúsítvány"
+  Course ||--o{ Module : "tartalmaz"
+  Course ||--o{ Enrollment : "beiratkozás"
+  Course ||--o{ Certificate : "tanúsítvány"
+  Module ||--o{ Exercise : "tartalmaz"
+  Exercise ||--o{ Progress : "haladás"
 ```
 
 **Táblák részletesen:**
@@ -176,6 +171,17 @@ Az Astro statikus HTML/CSS/JS fájlokat generál. A build kimenetet az nginx szo
 ---
 
 ## CI/CD
+
+```mermaid
+graph LR
+  Push["git push"] --> Lint["ruff lint"]
+  Lint --> Test["pytest"]
+  Test --> Deploy["SSH deploy"]
+  Deploy --> Pull["git pull"]
+  Pull --> Build["docker compose build"]
+  Build --> Migrate["alembic upgrade"]
+  Migrate --> Health["health check"]
+```
 
 ### CI Pipeline (`.github/workflows/ci.yml`)
 

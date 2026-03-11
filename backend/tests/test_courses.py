@@ -19,7 +19,10 @@ def sample_course(db_session):
 def test_list_courses_public(client, sample_course):
     response = client.get("/api/courses")
     assert response.status_code == 200
-    data = response.json()
+    body = response.json()
+    assert "total" in body
+    assert body["total"] == 1
+    data = body["data"]
     assert isinstance(data, list)
     assert len(data) == 1
     assert data[0]["name"] == "Python 101"

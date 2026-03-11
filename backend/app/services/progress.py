@@ -26,7 +26,7 @@ def count_progress(db: Session, user_id: int, course_id: int) -> tuple[int, int]
     return total, completed
 
 
-async def update_progress_for_user(db: Session, user: User, github_token: str, owner: str = "openschool-org"):
+async def update_progress_for_user(db: Session, user: User, github_token: str, owner: str = "openschool-org") -> None:
     """Check GitHub CI status for all enrolled exercises and update progress."""
     enrollments = db.query(Enrollment).filter(Enrollment.user_id == user.id).all()
 

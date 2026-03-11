@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session, joinedload
 
@@ -36,18 +36,26 @@ class ExerciseCreate(BaseModel):
 
 
 @router.get("")
-def list_courses(db: Session = Depends(get_db)):
-    """List all courses (public)."""
-    courses = db.query(Course).all()
-    return [
-        {
-            "id": c.id,
-            "name": c.name,
-            "description": c.description,
-            "created_at": c.created_at.isoformat() if c.created_at else None,
-        }
-        for c in courses
-    ]
+def list_courses(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
+    db: Session = Depends(get_db),
+):
+    """List courses with pagination (public)."""
+    total = db.query(Course).count()
+    courses = db.query(Course).order_by(Course.created_at.desc()).offset(skip).limit(limit).all()
+    return {
+        "total": total,
+        "data": [
+            {
+                "id": c.id,
+                "name": c.name,
+                "description": c.description,
+                "created_at": c.created_at.isoformat() if c.created_at else None,
+            }
+            for c in courses
+        ],
+    }
 
 
 @router.get("/{course_id}")

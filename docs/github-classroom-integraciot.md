@@ -4,6 +4,19 @@
 
 Ez a dokumentum lépésről lépésre leírja, hogyan kell egy GitHub Classroom-ban létrehozott feladatot összekötni az OpenSchool platformmal, és hogyan működik az automatikus értékelés.
 
+## Tartalomjegyzék
+
+- [Előfeltételek](#előfeltételek)
+- [1. lépés: `.env` beállítása](#1-lépés-env-beállítása)
+- [2. lépés: Kurzus és modulok létrehozása](#2-lépés-kurzus-és-modulok-létrehozása-az-openschool-ban)
+- [3. lépés: Feladat létrehozása a GitHub Classroom-ban](#3-lépés-feladat-létrehozása-a-github-classroom-ban)
+- [4. lépés: Feladat hozzárendelése az OpenSchool-ban](#4-lépés-feladat-hozzárendelése-az-openschool-ban)
+- [5. lépés: Webhook beállítása](#5-lépés-webhook-beállítása-opcionális-de-ajánlott)
+- [6. lépés: Tanulói folyamat](#6-lépés-tanulói-folyamat)
+- [Összefoglaló](#összefoglaló-mi-manuális-és-mi-automatikus)
+- [Ismert korlátok](#ismert-korlátok)
+- [Hibaelhárítás](#hibaelhárítás)
+
 ---
 
 ## Előfeltételek

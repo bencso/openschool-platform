@@ -70,7 +70,14 @@ a:hover {
 }
 
 /* Progress bar */
+.progress-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .progress-bar {
+  flex: 1;
   background: var(--color-border);
   border-radius: 10px;
   height: 20px;

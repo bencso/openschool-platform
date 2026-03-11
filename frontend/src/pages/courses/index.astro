@@ -14,7 +14,8 @@ import Layout from '../../layouts/Layout.astro';
       try {
         const res = await fetch('/api/courses');
         if (!res.ok) return;
-        const courses = await res.json();
+        const body = await res.json();
+        const courses = body.data;
         const container = document.getElementById('courses');
         if (!container) return;
         if (courses.length === 0) {

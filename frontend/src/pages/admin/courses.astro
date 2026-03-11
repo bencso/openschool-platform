@@ -26,7 +26,8 @@ import Layout from '../../layouts/Layout.astro';
 
       const res = await fetch('/api/courses');
       if (!res.ok) { container.innerHTML = '<p>Hiba történt.</p>'; return; }
-      const courses = await res.json();
+      const body = await res.json();
+      const courses = body.data;
 
       container.innerHTML = `
         <div class="admin-nav" style="margin-bottom:32px;display:flex;gap:12px;flex-wrap:wrap;">

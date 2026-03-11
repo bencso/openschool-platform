@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+from typing import Literal
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -9,6 +11,8 @@ from app.models.course import Course, Enrollment, Exercise, Module, Progress
 from app.models.user import User, UserRole
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
+
+USERS_SORT_COLUMNS = {"created_at": User.created_at, "username": User.username, "role": User.role}
 
 
 # --- Schemas ---
@@ -41,23 +45,33 @@ def admin_stats(
 
 @router.get("/users")
 def list_users(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
+    sort_by: Literal["created_at", "username", "role"] = "created_at",
+    sort_order: Literal["asc", "desc"] = "desc",
     db: Session = Depends(get_db),
     _admin: User = Depends(require_role(UserRole.admin)),
 ):
-    """List all users."""
-    users = db.query(User).order_by(User.created_at.desc()).all()
-    return [
-        {
-            "id": u.id,
-            "username": u.username,
-            "email": u.email,
-            "avatar_url": u.avatar_url,
-            "role": u.role.value if u.role else "student",
-            "created_at": u.created_at.isoformat() if u.created_at else None,
-            "last_login": u.last_login.isoformat() if u.last_login else None,
-        }
-        for u in users
-    ]
+    """List users with pagination and sorting."""
+    total = db.query(User).count()
+    column = USERS_SORT_COLUMNS[sort_by]
+    order = column.asc() if sort_order == "asc" else column.desc()
+    users = db.query(User).order_by(order).offset(skip).limit(limit).all()
+    return {
+        "total": total,
+        "data": [
+            {
+                "id": u.id,
+                "username": u.username,
+                "email": u.email,
+                "avatar_url": u.avatar_url,
+                "role": u.role.value if u.role else "student",
+                "created_at": u.created_at.isoformat() if u.created_at else None,
+                "last_login": u.last_login.isoformat() if u.last_login else None,
+            }
+            for u in users
+        ],
+    }
 
 
 @router.patch("/users/{user_id}/role")
