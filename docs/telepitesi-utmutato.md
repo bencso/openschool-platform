@@ -227,24 +227,159 @@ A CI pipeline minden push és PR esetén automatikusan futtatja a teszteket.
 
 ## Staging telepítés
 
-Staging környezethez (pl. `staging.yourdomain.com`):
+A staging környezet az éles rendszer tükörképe, ahol a `develop` branch-et teszteljük deploy előtt. A staging és a production környezet **teljesen elkülönített** — saját adatbázis, saját GitHub OAuth app, saját domain.
 
-1. Hozz létre `.env.staging` fájlt a szerveren:
-   ```bash
-   DATABASE_URL=postgresql://openschool:EROS_JELSZO@db:5432/openschool
-   SECRET_KEY=random-64-karakteres-string-staginghez
-   BASE_URL=https://staging.yourdomain.com
-   GITHUB_CLIENT_ID=staging_client_id
-   GITHUB_CLIENT_SECRET=staging_client_secret
-   DB_USER=openschool
-   DB_PASSWORD=EROS_JELSZO
-   DB_NAME=openschool
-   ```
+### 1. GitHub OAuth app staging-hez
 
-2. Telepítés a production compose fájllal:
-   ```bash
-   docker compose -f docker-compose.prod.yml --env-file .env.staging up --build -d
-   ```
+A staging-nek **külön** GitHub OAuth alkalmazás kell (a callback URL eltér):
+
+1. [GitHub Settings > Developer settings > OAuth Apps > New](https://github.com/settings/developers)
+2. Beállítások:
+   - **Application name:** `OpenSchool Staging`
+   - **Homepage URL:** `https://staging.yourdomain.com`
+   - **Authorization callback URL:** `https://staging.yourdomain.com/api/auth/callback`
+3. Jegyezd fel a `Client ID` és `Client Secret` értékeket
+
+### 2. Szerver előkészítése
+
+Staging futhat ugyanazon a VPS-en (eltérő portokon) vagy külön szerveren:
+
+```bash
+# Projekt könyvtár (elkülönítve a production-től)
+sudo mkdir -p /opt/openschool-staging
+sudo chown $USER:$USER /opt/openschool-staging
+cd /opt/openschool-staging
+
+# Klónozás (develop branch)
+git clone -b develop git@github.com:ghemrich/openschool-platform.git .
+```
+
+### 3. Környezeti változók
+
+Hozz létre `.env.staging` fájlt a szerveren:
+
+```bash
+DATABASE_URL=postgresql://openschool_staging:STAGING_JELSZO@db:5432/openschool_staging
+SECRET_KEY=$(openssl rand -hex 32)
+BASE_URL=https://staging.yourdomain.com
+ENVIRONMENT=staging
+ALLOWED_ORIGINS=https://staging.yourdomain.com
+GITHUB_CLIENT_ID=staging_oauth_client_id
+GITHUB_CLIENT_SECRET=staging_oauth_client_secret
+GITHUB_WEBHOOK_SECRET=$(openssl rand -hex 20)
+DB_USER=openschool_staging
+DB_PASSWORD=STAGING_JELSZO
+DB_NAME=openschool_staging
+```
+
+> ⚠️ **Fontos:** A staging és production adatbázis **külön** kell legyen. Soha ne használj production adatokat staging-en felhasználói adatvédelmi okokból.
+
+### 4. DNS konfiguráció
+
+Hozz létre egy `A` rekordot a DNS szolgáltatónál:
+
+```
+staging.yourdomain.com  →  A  →  VPS_IP
+```
+
+Ha ugyanazon a VPS-en fut mint a production, az nginx reverse proxy megoldja a routolást a domain alapján.
+
+### 5. Indítás
+
+```bash
+cd /opt/openschool-staging
+
+# Telepítés a production compose fájllal, staging env-vel
+docker compose -f docker-compose.prod.yml --env-file .env.staging up --build -d
+
+# Migráció futtatása
+docker compose -f docker-compose.prod.yml --env-file .env.staging exec -T backend alembic upgrade head
+
+# Ellenőrzés
+docker compose -f docker-compose.prod.yml --env-file .env.staging ps
+curl -f http://localhost:8000/health
+```
+
+> **Megjegyzés:** Ha a production és staging ugyanazon a gépen fut, a staging-nek eltérő portokat kell használnia. Ezt a `docker-compose.prod.yml` felülírásával oldhatod meg:
+> ```bash
+> # docker-compose.staging.yml (override)
+> services:
+>   nginx:
+>     ports:
+>       - "8080:80"
+>   backend:
+>     ports:
+>       - "8001:8000"
+> ```
+> Indítás: `docker compose -f docker-compose.prod.yml -f docker-compose.staging.yml --env-file .env.staging up --build -d`
+
+### 6. Deploy folyamat
+
+A staging deploy a `develop` branch-ről történik:
+
+```bash
+cd /opt/openschool-staging
+git pull origin develop
+docker compose -f docker-compose.prod.yml --env-file .env.staging up --build -d
+docker compose -f docker-compose.prod.yml --env-file .env.staging exec -T backend alembic upgrade head
+curl -f http://localhost:8000/health
+```
+
+**Automatizálás (opcionális):** A CD pipeline kibővíthető staging deploy-jal a `develop` branch-re:
+
+```yaml
+# .github/workflows/cd.yml — staging job hozzáadása
+staging-deploy:
+  runs-on: ubuntu-latest
+  needs: test
+  if: github.ref == 'refs/heads/develop' && vars.STAGING_HOST != ''
+  environment: staging
+  steps:
+    - name: Deploy to staging
+      uses: appleboy/ssh-action@v1
+      with:
+        host: ${{ vars.STAGING_HOST }}
+        username: ${{ secrets.STAGING_USER }}
+        key: ${{ secrets.STAGING_SSH_KEY }}
+        script: |
+          set -e
+          cd /opt/openschool-staging
+          git pull origin develop
+          docker compose -f docker-compose.prod.yml --env-file .env.staging up --build -d
+          docker compose -f docker-compose.prod.yml --env-file .env.staging exec -T backend alembic upgrade head
+          sleep 5
+          curl -f http://localhost:8000/health
+          echo "Staging deploy successful!"
+```
+
+Ehhez a GitHub repo-ban be kell állítani:
+- **Environment:** `staging` (Settings > Environments)
+- **Variables:** `STAGING_HOST`
+- **Secrets:** `STAGING_USER`, `STAGING_SSH_KEY`
+
+### 7. Migráció tesztelés staging-en
+
+A staging elsődleges célja az adatbázis migrációk tesztelése éles deploy előtt:
+
+1. **Migráció generálása** a fejlesztői gépen (`alembic revision --autogenerate`)
+2. **PR nyitása** `develop`-ra → CI futtatja a teszteket
+3. **Merge `develop`-ba** → staging deploy (manuális vagy automatikus)
+4. **Migráció futtatása staging-en** → ellenőrzés, hogy sikeres-e
+5. **Funkcionális teszt** staging-en (manuális)
+6. **Merge `main`-be** → production deploy
+
+### 8. Staging vs Production összehasonlítás
+
+| Szempont | Staging | Production |
+|----------|---------|------------|
+| Branch | `develop` | `main` |
+| Domain | `staging.yourdomain.com` | `yourdomain.com` |
+| Adatbázis | `openschool_staging` | `openschool` |
+| GitHub OAuth | Külön app | Külön app |
+| `ENVIRONMENT` | `staging` | `production` |
+| Swagger UI | Elérhető (`/docs`) | Letiltva |
+| Deploy | Manuális / develop push | Automatikus main push |
+| Cél | Tesztelés, review | Felhasználói forgalom |
 
 ---
 
