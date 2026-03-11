@@ -20,9 +20,11 @@ Ez az útmutató a helyi fejlesztést, a staging és az éles (production) üzem
 10. [SSH biztonság](#ssh-biztonság)
 11. [DNS és Cloudflare konfiguráció](#dns-és-cloudflare-konfiguráció)
 12. [SSL/TLS Let's Encrypt-tel](#ssltls-lets-encrypttel)
-13. [Biztonsági mentés](#biztonsági-mentés)
-14. [CI/CD Pipeline](#cicd-pipeline)
-15. [Hibaelhárítás](#hibaelhárítás)
+13. [Karbantartás és provisioning](#karbantartás-és-provisioning)
+14. [Deploy SSH kulcs CI/CD-hez](#deploy-ssh-kulcs-cicd-hez)
+15. [Biztonsági mentés](#biztonsági-mentés)
+16. [CI/CD Pipeline](#cicd-pipeline)
+17. [Hibaelhárítás](#hibaelhárítás)
 
 ---
 
@@ -425,47 +427,81 @@ A bootstrap után futtasd a biztonsági ellenőrzést:
 
 ```bash
 # SSH belépés a VPS-re
-ssh user@your-vps-ip
+ssh root@your-vps-ip
+
+# Rendszerfrissítés és alap csomagok
+apt-get update && apt-get install -y curl git ufw
 
 # Docker telepítése (Ubuntu/Debian)
 curl -fsSL https://get.docker.com | sh
-sudo usermod -aG docker $USER
-# Jelentkezz ki és be, hogy a csoport érvényre jusson
 
-# Docker Compose plugin telepítése
-sudo apt-get install docker-compose-plugin
-
-# Projekt könyvtár létrehozása
-sudo mkdir -p /opt/openschool
-sudo chown $USER:$USER /opt/openschool
-cd /opt/openschool
+# Docker Compose plugin telepítése (ha nincs benne)
+apt-get install -y docker-compose-plugin
 ```
+
+#### 1b. Deploy felhasználó létrehozása
+
+Ne futtasd a szolgáltatásokat root-ként — hozz létre egy dedikált deploy felhasználót:
+
+```bash
+# Deploy felhasználó létrehozása
+useradd -m -s /bin/bash openschool
+
+# Docker csoport hozzáadása (konténerek kezeléshez)
+usermod -aG docker openschool
+
+# Projekt könyvtár létrehozása és birtokba adása
+mkdir -p /opt/openschool
+chown openschool:openschool /opt/openschool
+```
+
+A deploy felhasználónak **nem kell** sudo jogosultság. A Docker csoport tagság elég a konténerek kezeléséhez.
+
+> **Megjegyzés:** Az SSH kulcs alapú bejelentkezést is be kell állítani ehhez a felhasználóhoz, ha CI/CD-t használsz (lásd [Deploy SSH kulcs CI/CD-hez](#deploy-ssh-kulcs-cicd-hez)).
 
 ### 2. Klónozás és konfigurálás
 
 ```bash
-git clone git@github.com:ghemrich/openschool-platform.git .
+# Váltás a deploy felhasználóra
+su - openschool
+cd /opt/openschool
 
-# Éles környezeti fájl létrehozása
-cp .env.example .env
-nano .env
+git clone git@github.com:ghemrich/openschool-platform.git .
 ```
 
-Éles értékek beállítása:
+#### `.env.prod` fájl létrehozása
+
+Az éles környezeti fájl neve `.env.prod` (nem `.env`), és szimlinkelve lesz:
 
 ```bash
-DATABASE_URL=postgresql://openschool:NAGYON_EROS_JELSZO@db:5432/openschool
-SECRET_KEY=$(openssl rand -hex 32)
+# Erős jelszavak generálása
+DB_PASS=$(openssl rand -base64 24)
+SECRET=$(openssl rand -hex 32)
+WEBHOOK_SECRET=$(openssl rand -hex 20)
+
+# .env.prod fájl létrehozása
+cat > .env.prod << EOF
+DB_USER=openschool
+DB_PASSWORD=$DB_PASS
+DB_NAME=openschool
+DATABASE_URL=postgresql://openschool:${DB_PASS}@db:5432/openschool
+SECRET_KEY=$SECRET
 BASE_URL=https://yourdomain.com
 ENVIRONMENT=production
 ALLOWED_ORIGINS=https://yourdomain.com
 GITHUB_CLIENT_ID=production_client_id
 GITHUB_CLIENT_SECRET=production_client_secret
-GITHUB_WEBHOOK_SECRET=$(openssl rand -hex 20)
-DB_USER=openschool
-DB_PASSWORD=NAGYON_EROS_JELSZO
-DB_NAME=openschool
+GITHUB_WEBHOOK_SECRET=$WEBHOOK_SECRET
+EOF
+
+# Jogosultsagok (csak a tulajdonos olvashatja)
+chmod 600 .env.prod
+
+# Szimlink létrehozása a docker-compose kompatibilitáshoz
+ln -sf .env.prod .env
 ```
+
+> ⚠️ **Fontos:** A `.env.prod` fájl tartalmazza az összes titkos kulcsot. Soha ne commitold, és állítsd `chmod 600`-ra.
 
 ### 3. DNS konfiguráció
 
@@ -612,22 +648,33 @@ sudo certbot certonly --standalone -d yourdomain.com -d www.yourdomain.com
 Frissítsd az `nginx/nginx.conf` fájlt SSL-hez:
 
 ```nginx
+# HTTP — /health átengedi (Docker healthcheck-hez), minden mást HTTPS-re irányít
 server {
     listen 80;
-    server_name yourdomain.com www.yourdomain.com;
-    return 301 https://$server_name$request_uri;
+
+    location /health {
+        proxy_pass http://backend/health;
+    }
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
 }
 
+# HTTPS — fő kiszolgáló
 server {
     listen 443 ssl;
-    server_name yourdomain.com www.yourdomain.com;
 
     ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
 
-    # ... meglévő location blokkok ...
+    # ... meglévő location blokkok (api, health, verify, stb.) ...
 }
 ```
+
+> **Fontos:** A port 80-as szerver blokkban a `/health` endpoint továbbra is elérhető marad — ez szükséges a Docker healthcheck és a belső monitoring számára. Minden más kérést HTTPS-re irányít.
 
 Csatold a tanúsítványokat a `docker-compose.prod.yml`-ben:
 
@@ -668,6 +715,116 @@ echo "0 3 * * * certbot renew --quiet && docker compose -f /opt/openschool/docke
 >   --dns-cloudflare-credentials /etc/letsencrypt/cloudflare.ini \
 >   -d yourdomain.com
 > ```
+
+---
+
+## Karbantartás és provisioning
+
+A telepítés után futtasd a `provision.sh` szkriptet a karbantartási infrastruktúra beállításához:
+
+```bash
+# Root-ként a VPS-en
+sudo /opt/openschool/scripts/provision.sh
+```
+
+Ez a következőket állítja be:
+1. **Backup könyvtár** — `/opt/openschool/backups/`
+2. **Cron job-ok** — napi, heti, havi karbantartási feladatok (`/etc/cron.d/openschool-maintenance`)
+3. **Karbantartási konfig** — `/etc/openschool-maintenance.conf`
+4. **Fájl jogosultságok** — szkriptek futtathatóvá tétele, `.env.prod` védelme
+5. **Log rotáció** — `/etc/logrotate.d/openschool`
+
+### Karbantartási konfig szerkesztése
+
+A `provision.sh` létrehoz egy konfigurációs fájlt a `/etc/openschool-maintenance.conf` helyen. Szerkeszd az SSL domain és a Discord értesítések beállításához:
+
+```bash
+sudo nano /etc/openschool-maintenance.conf
+```
+
+Fontos beállítások:
+
+```bash
+# SSL tanúsítvány lejárat figyelése (kötelező HTTPS esetén)
+SSL_DOMAIN=yourdomain.com
+SSL_WARNING_DAYS=30
+
+# Discord értesítések (opcionális)
+DISCORD_WEBHOOK_URL=https://discord.com/api/webhooks/...
+
+# Backup konfiguráció (alapértelmezettek általában jók)
+# BACKUP_DIR=/opt/openschool/backups
+# BACKUP_RETENTION_DAYS=30
+```
+
+### Karbantartási parancsok
+
+A beállítás után a karbantartó szkript elérhető:
+
+```bash
+# Szolgáltatások állapot ellenőrzése
+./scripts/maintenance.sh health
+
+# Kézi backup készítése
+./scripts/maintenance.sh backup
+
+# SSL tanúsítvány lejárat ellenőrzése
+./scripts/maintenance.sh ssl-check
+
+# Teljes napi karbantartás
+./scripts/maintenance.sh full-daily
+```
+
+---
+
+## Deploy SSH kulcs CI/CD-hez
+
+A GitHub Actions CD pipeline SSH-val csatlakozik a VPS-hez. Ehhez egy dedikált SSH kulcspár kell a deploy felhasználóhoz.
+
+### 1. SSH kulcspár generálása a VPS-en
+
+```bash
+# Deploy felhasználóként
+su - openschool
+
+# Ed25519 kulcspár generálása (jelszó nélkül a CI/CD automatizáláshoz)
+ssh-keygen -t ed25519 -C "deploy@openschool" -f ~/.ssh/id_ed25519 -N ""
+
+# Publikus kulcs hozzáadása az authorized_keys-hez
+cat ~/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys
+chmod 600 ~/.ssh/authorized_keys
+
+# Privát kulcs tartalmának kiíratása (ezt kell a GitHub Secrets-be másolni)
+cat ~/.ssh/id_ed25519
+```
+
+### 2. GitHub Actions titkok beállítása
+
+GitHub repó → Settings → Secrets and variables → Actions:
+
+**Secrets** (Settings → Secrets → New repository secret):
+
+| Név | Érték |
+|-----|-------|
+| `VPS_USER` | `openschool` |
+| `VPS_SSH_KEY` | A privát kulcs teljes tartalma (`-----BEGIN OPENSSH PRIVATE KEY-----` ... `-----END OPENSSH PRIVATE KEY-----`) |
+
+**Variables** (Settings → Variables → New repository variable):
+
+| Név | Érték |
+|-----|-------|
+| `VPS_HOST` | A VPS IP-címe (pl. `194.99.21.209`) |
+
+### 3. Tesztelés
+
+Push-olj a `main` ágra, és ellenőrizd, hogy a CD pipeline sikeresen csatlakozik és deploy-ol:
+
+```bash
+git push origin main
+# → GitHub Actions → CD workflow → ellenőrizd a deploy lépést
+```
+
+> **Megjegyzés:** A `VPS_HOST` változó (nem secret!) vezérli, hogy a CD pipeline egyáltalán lefut-e. Ha nincs beállítva, a deploy lépés kihagyásra kerül.
 
 ---
 
@@ -786,6 +943,54 @@ docker compose restart nginx
 
 - Ellenőrizd, hogy a `backend/data/` könyvtár létezik és írható
 - Nézd meg a backend logokat a PDF generálási hibákért
+
+### VPS újratelepítés után SSH host key hiba
+
+Ha a VPS-t újratelepítették, az SSH kliens régi host key-t fog találni, és megtagadja a kapcsolatot:
+
+```
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+@ WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED! @
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+```
+
+Megoldás:
+
+```bash
+# Régi host key törlése a helyi gépről
+ssh-keygen -R VPS_IP
+
+# Újra csatlakozás (elfogadja az új host key-t)
+ssh root@VPS_IP
+```
+
+### Alembic migráció hiba: tábla már létezik
+
+Ha a SQLAlchemy modellek automatikusan létrehozták a táblákat az `alembic upgrade head` előtt:
+
+```
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.DuplicateTable) relation "users" already exists
+```
+
+Megoldás — jelöld meg az aktuális állapotot a legutolsó migrációval:
+
+```bash
+docker compose -f docker-compose.prod.yml exec backend alembic stamp head
+```
+
+Ez nem futtat migrációkat, csak beállítja az Alembic verziót, hogy szinkronban legyen a tényleges adatbázis állapottal.
+
+### Cloudflare 522 Connection Timed Out
+
+Ha a domain Cloudflare mögül 522 hibát ad:
+
+1. **Konténerek futnak?** — `docker compose -f docker-compose.prod.yml ps`
+2. **Portok nyitva?** — `sudo ufw status` (80 és 443 kell)
+3. **SSL mód helyes?** — Cloudflare SSL/TLS → Full (Strict) módban a VPS-en HTTPS (port 443) kell
+4. **nginx elérhető?** — `curl -v http://localhost/health` a VPS-ről
+5. **Cloudflare proxy aktív?** — DNS rekordnál narancssárga felhő (Proxied) kell
+
+Gyakori ok: Cloudflare Full/Full (Strict) módban a 443-as porton próbál csatlakozni, de az nginx-ben nincs SSL konfigurálva vagy a 443-as port nincs nyitva a tűzfalon.
 
 ---
 
