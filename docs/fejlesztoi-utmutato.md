@@ -1,6 +1,6 @@
 # Fejlesztői útmutató
 
-> 📖 **Dokumentáció:** [Főoldal](../README.md) · [Architektúra](architektura.md) · [Telepítés](telepitesi-utmutato.md) · **Fejlesztői útmutató** · [Backend](backend-fejlesztes.md) · [Frontend](frontend-fejlesztes.md) · [Roadmap](jovokep-es-fejlesztesi-terv.md) · [Felhasználói útmutató](felhasznaloi-utmutato.md) · [GitHub Classroom](github-classroom-integraciot.md) · [Karbantartás](karbantartas-utmutato.md) · [Automatizálás](automatizalas-beallitas.md) · [Discord](discord-integracio.md) · [Dokumentálás](dokumentacios-utmutato.md) · [Hozzájárulás](../CONTRIBUTING.md)
+> 📖 **Dokumentáció:** [Főoldal](../README.md) · [Architektúra](architektura.md) · [Telepítés](telepitesi-utmutato.md) · **Fejlesztői útmutató** · [Backend](backend-fejlesztes.md) · [Frontend](frontend-fejlesztes.md) · [Roadmap](jovokep-es-fejlesztesi-terv.md) · [Felhasználói útmutató](felhasznaloi-utmutato.md) · [GitHub Classroom](github-classroom-integraciot.md) · [Karbantartás](karbantartas-utmutato.md) · [Automatizálás](automatizalas-beallitas.md) · [Discord](discord-integracio.md) · [Dokumentálás](dokumentacios-utmutato.md) · [API referencia](api-referencia.md) · [Adatbázis](adatbazis-sema.md) · [Tesztelés](tesztelesi-utmutato.md) · [Környezeti változók](kornyezeti-valtozok.md) · [Hozzájárulás](../CONTRIBUTING.md)
 
 Ez az útmutató a közös fejlesztői környezet felállítását és a megosztott eszközöket írja le. A backend és frontend specifikus részletekért lásd:
 
@@ -403,18 +403,22 @@ openschool-platform/
 │   └── modul-01..07/
 │
 └── docs/
-    ├── architektura.md               # Rendszer architektúra
+    ├── adatbazis-sema.md              # Adatbázis séma, táblák, kapcsolatok
+    ├── api-referencia.md              # API végpontok referencia
+    ├── architektura.md                # Rendszer architektúra
     ├── automatizalas-beallitas.md     # Automatizálás beállítása
-    ├── backend-fejlesztes.md         # Backend fejlesztői útmutató
-    ├── discord-integracio.md         # Discord szerver és webhook integráció
-    ├── dokumentacios-utmutato.md     # Dokumentálási útmutató
-    ├── fejlesztoi-utmutato.md        # ← Ez a dokumentum
-    ├── felhasznaloi-utmutato.md      # Felhasználói útmutató
-    ├── frontend-fejlesztes.md        # Frontend fejlesztői útmutató
+    ├── backend-fejlesztes.md          # Backend fejlesztői útmutató
+    ├── discord-integracio.md          # Discord szerver és webhook integráció
+    ├── dokumentacios-utmutato.md      # Dokumentálási útmutató
+    ├── fejlesztoi-utmutato.md         # ← Ez a dokumentum
+    ├── felhasznaloi-utmutato.md       # Felhasználói útmutató
+    ├── frontend-fejlesztes.md         # Frontend fejlesztői útmutató
     ├── github-classroom-integraciot.md # GitHub Classroom integráció
     ├── jovokep-es-fejlesztesi-terv.md # Jövőkép és fejlesztési terv
-    ├── karbantartas-utmutato.md      # Karbantartási útmutató
-    └── telepitesi-utmutato.md        # Üzemeltetési útmutató
+    ├── karbantartas-utmutato.md       # Karbantartási útmutató
+    ├── kornyezeti-valtozok.md         # Környezeti változók referencia
+    ├── telepitesi-utmutato.md         # Üzemeltetési útmutató
+    └── tesztelesi-utmutato.md         # Tesztelési útmutató
 ```
 
 ---

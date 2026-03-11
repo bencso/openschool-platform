@@ -1,6 +1,6 @@
 # OpenSchool Platform — Jövőkép és fejlesztési terv
 
-> 📖 **Dokumentáció:** [Főoldal](../README.md) · [Architektúra](architektura.md) · [Telepítés](telepitesi-utmutato.md) · [Fejlesztői útmutató](fejlesztoi-utmutato.md) · [Backend](backend-fejlesztes.md) · [Frontend](frontend-fejlesztes.md) · **Roadmap** · [Felhasználói útmutató](felhasznaloi-utmutato.md) · [GitHub Classroom](github-classroom-integraciot.md) · [Karbantartás](karbantartas-utmutato.md) · [Automatizálás](automatizalas-beallitas.md) · [Discord](discord-integracio.md) · [Dokumentálás](dokumentacios-utmutato.md) · [Hozzájárulás](../CONTRIBUTING.md)
+> 📖 **Dokumentáció:** [Főoldal](../README.md) · [Architektúra](architektura.md) · [Telepítés](telepitesi-utmutato.md) · [Fejlesztői útmutató](fejlesztoi-utmutato.md) · [Backend](backend-fejlesztes.md) · [Frontend](frontend-fejlesztes.md) · **Roadmap** · [Felhasználói útmutató](felhasznaloi-utmutato.md) · [GitHub Classroom](github-classroom-integraciot.md) · [Karbantartás](karbantartas-utmutato.md) · [Automatizálás](automatizalas-beallitas.md) · [Discord](discord-integracio.md) · [Dokumentálás](dokumentacios-utmutato.md) · [API referencia](api-referencia.md) · [Adatbázis](adatbazis-sema.md) · [Tesztelés](tesztelesi-utmutato.md) · [Környezeti változók](kornyezeti-valtozok.md) · [Hozzájárulás](../CONTRIBUTING.md)
 
 Ez a dokumentum összefoglalja az OpenSchool platform teljes vízióját, és felméri, mi van készen, mi hiányzik, és mi a tervezett fejlesztési irány.
 
@@ -102,7 +102,11 @@ Egy új kurzus indításához a GitHub Classroom-ban és az OpenSchool admin pan
 | Automatizálás beállítási útmutató | ✅ |
 | Discord integrációs útmutató | ✅ |
 | Dokumentálási útmutató | ✅ |
-| Dokumentumok közötti navigáció (14 doc) | ✅ |
+| API referencia | ✅ |
+| Adatbázis séma dokumentáció | ✅ |
+| Tesztelési útmutató | ✅ |
+| Környezeti változók referencia | ✅ |
+| Dokumentumok közötti navigáció (18 doc) | ✅ |
 ### ✅ Tesztek
 
 | Teszt | Állapot |
@@ -242,6 +246,6 @@ A platform fejlesztése során a következő külső eszközök integrálása te
 
 ## Összefoglalás
 
-A platform alapjai **készen állnak**: backend API (auth, kurzusok, haladás, tanúsítványok, admin), frontend (9 oldal), infrastruktúra (Docker, CI/CD, nginx, automatizált karbantartás, Discord CI/CD értesítések), GitHub Classroom integráció (repo_prefix, webhook, sync), admin panel, és 12 dokumentum navigációval összekötve.
+A platform alapjai **készen állnak**: backend API (auth, kurzusok, haladás, tanúsítványok, admin), frontend (9 oldal), infrastruktúra (Docker, CI/CD, nginx, automatizált karbantartás, Discord CI/CD értesítések), GitHub Classroom integráció (repo_prefix, webhook, sync), admin panel, és 16 dokumentum navigációval összekötve.
 
 Az automatizáció szintén kész: VPS bootstrap szkript, cron job-ok, biztonsági audit, ops monitoring Discord értesítésekkel. A következő nagy lépés a **VPS telepítés** (a szkriptek készen állnak), majd a **platform → Discord értesítések** és **tanári eszközök bővítése** (automatikus Classroom szinkronizálás, tanári dashboard), amelyek a platform valódi értékét tovább növelik.

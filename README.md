@@ -177,6 +177,10 @@ Szívesen fogadjuk a hozzájárulásokat! Olvasd el a [CONTRIBUTING.md](CONTRIBU
 | [Automatizálás](docs/automatizalas-beallitas.md) | Cron job-ok, VPS bootstrap, Discord értesítések, secrets kezelés |
 | [Discord integráció](docs/discord-integracio.md) | Discord szerver, webhook, CI/CD értesítések, csatornastruktúra |
 | [Dokumentálás](docs/dokumentacios-utmutato.md) | Docstring-ek, API docs, Markdown konvenciók, navsáv, CHANGELOG |
+| [API referencia](docs/api-referencia.md) | Összes végpont, kérés/válasz sémák, státuszkódok, hitelesítés |
+| [Adatbázis séma](docs/adatbazis-sema.md) | Táblák, oszlopok, kapcsolatok, Alembic migrációk |
+| [Tesztelés](docs/tesztelesi-utmutato.md) | Tesztek futtatása, fixture-ök, új teszt írása, CI integráció |
+| [Környezeti változók](docs/kornyezeti-valtozok.md) | Összes env var referencia, Docker, GitHub Actions secrets, VPS config |
 | [Hozzájárulás](CONTRIBUTING.md) | Fork, branch stratégia, PR küldés, kódstílus |
 
 A `good first issue` címkéjű [issue-k](../../issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) ideálisak kezdőknek.

@@ -1,6 +1,6 @@
 # OpenSchool Platform — Dokumentálási útmutató
 
-> 📖 **Dokumentáció:** [Főoldal](../README.md) · [Architektúra](architektura.md) · [Telepítés](telepitesi-utmutato.md) · [Fejlesztői útmutató](fejlesztoi-utmutato.md) · [Backend](backend-fejlesztes.md) · [Frontend](frontend-fejlesztes.md) · [Roadmap](jovokep-es-fejlesztesi-terv.md) · [Felhasználói útmutató](felhasznaloi-utmutato.md) · [GitHub Classroom](github-classroom-integraciot.md) · [Karbantartás](karbantartas-utmutato.md) · [Automatizálás](automatizalas-beallitas.md) · [Discord](discord-integracio.md) · **Dokumentálás** · [Hozzájárulás](../CONTRIBUTING.md)
+> 📖 **Dokumentáció:** [Főoldal](../README.md) · [Architektúra](architektura.md) · [Telepítés](telepitesi-utmutato.md) · [Fejlesztői útmutató](fejlesztoi-utmutato.md) · [Backend](backend-fejlesztes.md) · [Frontend](frontend-fejlesztes.md) · [Roadmap](jovokep-es-fejlesztesi-terv.md) · [Felhasználói útmutató](felhasznaloi-utmutato.md) · [GitHub Classroom](github-classroom-integraciot.md) · [Karbantartás](karbantartas-utmutato.md) · [Automatizálás](automatizalas-beallitas.md) · [Discord](discord-integracio.md) · **Dokumentálás** · [API referencia](api-referencia.md) · [Adatbázis](adatbazis-sema.md) · [Tesztelés](tesztelesi-utmutato.md) · [Környezeti változók](kornyezeti-valtozok.md) · [Hozzájárulás](../CONTRIBUTING.md)
 
 Ez az útmutató leírja, hogyan kell dokumentálni a kódot és a projektet. Minden fejlesztő felelős azért, hogy a változtatásai dokumentáltak legyenek — a kódban és a docs mappában egyaránt.
 
@@ -27,13 +27,14 @@ Ez az útmutató leírja, hogyan kell dokumentálni a kódot és a projektet. Mi
 
 | Változtatás típusa | Szükséges dokumentáció |
 |---------------------|------------------------|
-| Új API végpont | Docstring + README API tábla + backend-fejlesztes.md |
+| Új API végpont | Docstring + api-referencia.md + README API tábla |
 | Új oldal (frontend) | frontend-fejlesztes.md oldalak szekció |
-| Új modell/tábla | Docstring + backend-fejlesztes.md adatmodell |
-| Konfiguráció változás | `.env.example` + telepitesi-utmutato.md |
+| Új modell/tábla | Docstring + adatbazis-sema.md |
+| Konfiguráció változás | `.env.example` + kornyezeti-valtozok.md |
 | Új szkript | Szkript fejléc komment + README vagy releváns doc |
 | Új Makefile target | fejlesztoi-utmutato.md Makefile szekció |
 | Architekturális döntés | architektura.md |
+| Új/módosított teszt | tesztelesi-utmutato.md (ha minta vagy fixture változik) |
 | Bug fix | Csak ha a viselkedés dokumentálva volt és változott |
 
 ---
@@ -184,18 +185,22 @@ Amikor új végpontot adsz hozzá, frissítsd a `README.md` API végpontok tábl
 
 ```
 docs/
-├── architektura.md            # Rendszer architektúra, adatmodell
-├── automatizalas-beallitas.md  # VPS automatizálás, cron, monitoring
-├── backend-fejlesztes.md      # Backend fejlesztői útmutató
-├── discord-integracio.md       # Discord szerver, webhook, bot
-├── dokumentacios-utmutato.md  # ← Ez a dokumentum
-├── fejlesztoi-utmutato.md     # Közös fejlesztői útmutató (Docker, CI/CD, stb.)
-├── felhasznaloi-utmutato.md   # Felhasználói útmutató (UI, funkciók)
-├── frontend-fejlesztes.md     # Frontend fejlesztői útmutató
+├── adatbazis-sema.md           # Adatbázis séma, táblák, kapcsolatok
+├── api-referencia.md           # API végpontok, kérés/válasz sémák
+├── architektura.md             # Rendszer architektúra, adatmodell
+├── automatizalas-beallitas.md   # VPS automatizálás, cron, monitoring
+├── backend-fejlesztes.md       # Backend fejlesztői útmutató
+├── discord-integracio.md        # Discord szerver, webhook, bot
+├── dokumentacios-utmutato.md   # ← Ez a dokumentum
+├── fejlesztoi-utmutato.md      # Közös fejlesztői útmutató (Docker, CI/CD, stb.)
+├── felhasznaloi-utmutato.md    # Felhasználói útmutató (UI, funkciók)
+├── frontend-fejlesztes.md      # Frontend fejlesztői útmutató
 ├── github-classroom-integraciot.md  # GitHub Classroom tanári útmutató
-├── jovokep-es-fejlesztesi-terv.md  # Roadmap és fejlesztési terv
-├── karbantartas-utmutato.md   # Karbantartási eljárások
-└── telepitesi-utmutato.md     # Telepítés (lokális, staging, éles)
+├── jovokep-es-fejlesztesi-terv.md   # Roadmap és fejlesztési terv
+├── karbantartas-utmutato.md    # Karbantartási eljárások
+├── kornyezeti-valtozok.md      # Környezeti változók referencia
+├── telepitesi-utmutato.md      # Telepítés (lokális, staging, éles)
+└── tesztelesi-utmutato.md      # Tesztelés, fixture-ök, CI integráció
 ```
 
 ### Melyik dokumentumot szerkesszem?
@@ -211,6 +216,10 @@ docs/
 | Hogyan dokumentáljam a kódomat? | `dokumentacios-utmutato.md` |
 | Hogyan tartom karban a prod rendszert? | `karbantartas-utmutato.md` |
 | Mi a tervünk a jövőre? | `jovokep-es-fejlesztesi-terv.md` |
+| Milyen API végpontok vannak? | `api-referencia.md` |
+| Milyen táblák vannak az adatbázisban? | `adatbazis-sema.md` |
+| Hogyan futtatok/írok teszteket? | `tesztelesi-utmutato.md` |
+| Milyen környezeti változók kellenek? | `kornyezeti-valtozok.md` |
 
 ### Új dokumentum létrehozása
 
@@ -285,7 +294,8 @@ Minden dokumentum tetején van egy navigációs sáv a többi dokumentumra. Az a
 ```
 Főoldal · Architektúra · Telepítés · Fejlesztői útmutató · Backend · Frontend ·
 Roadmap · Felhasználói útmutató · GitHub Classroom · Karbantartás · Automatizálás ·
-Discord · Dokumentálás · Hozzájárulás
+Discord · Dokumentálás · API referencia · Adatbázis · Tesztelés · Környezeti változók ·
+Hozzájárulás
 ```
 
 ---
