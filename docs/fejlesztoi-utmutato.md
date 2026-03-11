@@ -1,6 +1,6 @@
 # Fejlesztői útmutató
 
-> 📖 **Dokumentáció:** [Főoldal](../README.md) · [Architektúra](architektura.md) · [Telepítés](telepitesi-utmutato.md) · **Fejlesztői útmutató** · [Roadmap](jovokep-es-fejlesztesi-terv.md) · [Felhasználói útmutató](felhasznaloi-utmutato.md) · [GitHub Classroom](github-classroom-integraciot.md) · [Karbantartás](karbantartas-utmutato.md) · [Hozzájárulás](../CONTRIBUTING.md)
+> 📖 **Dokumentáció:** [Főoldal](../README.md) · [Architektúra](architektura.md) · [Telepítés](telepitesi-utmutato.md) · **Fejlesztői útmutató** · [Roadmap](jovokep-es-fejlesztesi-terv.md) · [Felhasználói útmutató](felhasznaloi-utmutato.md) · [GitHub Classroom](github-classroom-integraciot.md) · [Karbantartás](karbantartas-utmutato.md) · [Automatizálás](automatizalas-beallitas.md) · [Hozzájárulás](../CONTRIBUTING.md)
 
 Ez az útmutató lépésről lépésre végigvezet az OpenSchool Platform fejlesztői környezetének felállításán.
 
@@ -713,7 +713,8 @@ docker compose exec backend alembic current
 ## 17. Makefile parancsok összefoglalása
 
 ```bash
-make dev-setup     # Teljes fejlesztői környezet felállítása
+# Fejlesztés
+make dev-setup     # Teljes fejlesztői környezet felállítása (venv, npm, hooks, .env)
 make up            # Docker szolgáltatások indítása
 make down          # Docker szolgáltatások leállítása
 make test          # Tesztek futtatása
@@ -721,6 +722,18 @@ make lint          # Linter ellenőrzés (nem módosít)
 make format        # Kód formázása (módosít)
 make migrate       # Adatbázis migrációk futtatása
 make install-hooks # Pre-commit hookok telepítése
+make clean         # __pycache__, .pytest_cache, *.pyc törlése
+make logs          # Docker logok követése (tail=100)
+make changelog     # CHANGELOG.md generálása (git-cliff)
+
+# Karbantartás (lásd: automatizalas-beallitas.md)
+make maintenance-health   # Health check
+make maintenance-backup   # Adatbázis mentés
+make maintenance-daily    # Teljes napi karbantartás
+make maintenance-weekly   # Teljes heti karbantartás
+make maintenance-monthly  # Teljes havi karbantartás
+make install-cron         # Cron job-ok telepítése (sudo)
+make security-check       # Biztonsági ellenőrzés
 ```
 
 ---

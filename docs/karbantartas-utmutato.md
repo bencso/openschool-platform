@@ -1,6 +1,6 @@
 # Karbantartás és minőségbiztosítás
 
-> 📖 **Dokumentáció:** [Főoldal](../README.md) · [Architektúra](architektura.md) · [Telepítés](telepitesi-utmutato.md) · [Fejlesztői útmutató](fejlesztoi-utmutato.md) · [Roadmap](jovokep-es-fejlesztesi-terv.md) · [Felhasználói útmutató](felhasznaloi-utmutato.md) · [GitHub Classroom](github-classroom-integraciot.md) · **Karbantartás** · [Hozzájárulás](../CONTRIBUTING.md)
+> 📖 **Dokumentáció:** [Főoldal](../README.md) · [Architektúra](architektura.md) · [Telepítés](telepitesi-utmutato.md) · [Fejlesztői útmutató](fejlesztoi-utmutato.md) · [Roadmap](jovokep-es-fejlesztesi-terv.md) · [Felhasználói útmutató](felhasznaloi-utmutato.md) · [GitHub Classroom](github-classroom-integraciot.md) · **Karbantartás** · [Automatizálás](automatizalas-beallitas.md) · [Hozzájárulás](../CONTRIBUTING.md)
 
 Ez az útmutató a OpenSchool Platform hosszú távú karbantartásához, minőségbiztosításához és üzemeltetéséhez szükséges folyamatokat és gyakorlatokat írja le.
 
@@ -131,7 +131,7 @@ Mielőtt élesbe megy egy új verzió:
 
 ```bash
 # VPS-en (SSH-val)
-cd /app/openschool-platform
+cd /opt/openschool
 git pull origin main
 docker compose -f docker-compose.prod.yml build
 docker compose -f docker-compose.prod.yml up -d
@@ -213,24 +213,31 @@ docker system prune -f    # nem használt objektumok törlése
 
 ### Backup
 
+> **Ajánlott:** Használd a `scripts/maintenance.sh backup` parancsot, ami automatikusan kezeli a hozzáférési adatokat, tömörítést és a régi mentések törlését. Részletek: [Automatizálás — 3. lépés](automatizalas-beallitas.md#3-lépés--mentési-könyvtár-beállítása)
+
 ```bash
+# Ajánlott módszer (a .env fájlból olvassa a DB_USER/DB_NAME értékeket)
+./scripts/maintenance.sh backup
+
 # Manuális backup
 docker compose -f docker-compose.prod.yml exec db \
-  pg_dump -U devschool devschool > backup_$(date +%Y%m%d).sql
+  pg_dump -U openschool openschool > backup_$(date +%Y%m%d).sql
 
 # Backup visszaállítás
 docker compose -f docker-compose.prod.yml exec -T db \
-  psql -U devschool devschool < backup_20260311.sql
+  psql -U openschool openschool < backup_20260311.sql
 ```
 
-### Automatikus backup (crontab)
+### Automatikus backup (cron)
+
+A projekt tartalmaz automatikus cron job-okat, amelyek a `maintenance.sh` szkriptet használják. Részletek: [Automatizálás — 2. lépés](automatizalas-beallitas.md#2-lépés--cron-jobok-telepítése)
 
 ```bash
-# Napi backup, 30 napig megőrzés
-0 2 * * * cd /app/openschool-platform && \
-  docker compose -f docker-compose.prod.yml exec -T db \
-  pg_dump -U devschool devschool | gzip > /backups/db_$(date +\%Y\%m\%d).sql.gz && \
-  find /backups -name "db_*.sql.gz" -mtime +30 -delete
+# Cron job-ok telepítése
+sudo ./scripts/setup-cron.sh
+
+# Vagy egyszerűbben: Makefile-lal
+make install-cron
 ```
 
 ### Migráció munkafolyamat
@@ -258,17 +265,20 @@ docker compose -f docker-compose.prod.yml exec backend \
 ### Adatbázis állapot ellenőrzés
 
 ```bash
+# Gyors ellenőrzés (maintenance szkript)
+./scripts/maintenance.sh db-status
+
 # Aktuális migráció verzió
 docker compose -f docker-compose.prod.yml exec backend alembic current
 
 # Tábla méretek
 docker compose -f docker-compose.prod.yml exec db \
-  psql -U devschool -c "SELECT relname, pg_size_pretty(pg_total_relation_size(relid))
+  psql -U openschool -c "SELECT relname, pg_size_pretty(pg_total_relation_size(relid))
   FROM pg_catalog.pg_statio_user_tables ORDER BY pg_total_relation_size(relid) DESC;"
 
 # Aktív kapcsolatok
 docker compose -f docker-compose.prod.yml exec db \
-  psql -U devschool -c "SELECT count(*) FROM pg_stat_activity;"
+  psql -U openschool -c "SELECT count(*) FROM pg_stat_activity;"
 ```
 
 ## 7. Incidenskezelés
@@ -280,7 +290,7 @@ docker compose -f docker-compose.prod.yml exec db \
    ```bash
    docker compose -f docker-compose.prod.yml ps       # service állapot
    docker compose -f docker-compose.prod.yml logs --tail=100 backend  # logok
-   docker compose -f docker-compose.prod.yml exec db psql -U devschool -c "SELECT 1;"  # DB elérés
+   docker compose -f docker-compose.prod.yml exec db psql -U openschool -c "SELECT 1;"  # DB elérés
    ```
 3. **Azonnali intézkedés:**
    - Service újraindítás: `docker compose -f docker-compose.prod.yml restart backend`

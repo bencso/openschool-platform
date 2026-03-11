@@ -55,12 +55,19 @@ ruff check . && ruff format --check .
 ### Makefile parancsok
 
 ```bash
-make up       # Docker Compose indítás
-make down     # Docker Compose leállítás
-make test     # Tesztek futtatása
-make migrate  # Alembic migrációk futtatása
-make lint     # Ruff linter és formatter ellenőrzés
+make dev-setup  # Teljes fejlesztői környezet felállítása
+make up         # Docker Compose indítás
+make down       # Docker Compose leállítás
+make test       # Tesztek futtatása
+make migrate    # Alembic migrációk futtatása
+make lint       # Ruff linter és formatter ellenőrzés
+make format     # Kód formázása
+make logs       # Docker logok követése
+make clean      # Ideiglenes fájlok törlése
+make changelog  # CHANGELOG.md generálása
 ```
+
+A karbantartási parancsokért lásd: [Automatizálás](docs/automatizalas-beallitas.md)
 
 ## Projekt struktúra
 
@@ -89,18 +96,66 @@ openschool-platform/
 
 ## API Endpoints
 
+### Publikus
+
 | Endpoint | Metódus | Leírás |
 |----------|---------|--------|
 | `/health` | GET | Health check |
+| `/api/courses` | GET | Kurzusok listázása (lapozható) |
+| `/api/courses/{id}` | GET | Kurzus részletei (modulok, feladatok) |
+| `/api/verify/{cert_id}` | GET | Tanúsítvány publikus verifikáció |
+
+### Autentikáció
+
+| Endpoint | Metódus | Leírás |
+|----------|---------|--------|
 | `/api/auth/login` | GET | GitHub OAuth bejelentkezés |
 | `/api/auth/callback` | GET | OAuth callback |
 | `/api/auth/me` | GET | Aktuális felhasználó adatai |
 | `/api/auth/refresh` | POST | Token frissítés |
-| `/api/courses` | GET | Kurzusok listázása |
-| `/api/courses/{id}` | GET | Kurzus részletei |
-| `/api/me/dashboard` | GET | Felhasználói dashboard |
+| `/api/auth/logout` | POST | Kijelentkezés (refresh token törlése) |
+
+### Dashboard (bejelentkezett felhasználó)
+
+| Endpoint | Metódus | Leírás |
+|----------|---------|--------|
+| `/api/me/dashboard` | GET | Felhasználói dashboard (összes kurzus haladás) |
+| `/api/me/courses` | GET | Beiratkozott kurzusok listája haladással |
+| `/api/me/courses/{id}/progress` | GET | Kurzus részletes haladása (modulonként) |
+| `/api/me/courses/{id}/progress` | POST | Feladat manuális teljesítés jelölése |
+| `/api/me/sync-progress` | POST | Haladás szinkronizálása GitHub CI-ból |
 | `/api/me/certificates` | GET | Tanúsítványok listája |
-| `/api/verify/{cert_id}` | GET | Tanúsítvány publikus verifikáció |
+| `/api/me/courses/{id}/certificate` | POST | Tanúsítvány igénylése (befejezett kurzushoz) |
+| `/api/me/certificates/{cert_id}/pdf` | GET | Tanúsítvány PDF letöltése |
+
+### Kurzuskezelés (beiratkozott felhasználó)
+
+| Endpoint | Metódus | Leírás |
+|----------|---------|--------|
+| `/api/courses/{id}/enroll` | POST | Beiratkozás kurzusra |
+| `/api/courses/{id}/unenroll` | POST | Leiratkozás kurzusról |
+| `/api/courses/{id}/students` | GET | Beiratkozott diákok listája (mentor/admin) |
+
+### Admin
+
+| Endpoint | Metódus | Leírás |
+|----------|---------|--------|
+| `/api/admin/stats` | GET | Platform statisztikák |
+| `/api/admin/users` | GET | Felhasználók listázása (lapozható, rendezhető) |
+| `/api/admin/users/{id}/role` | PATCH | Felhasználó szerepkör módosítása |
+| `/api/courses` | POST | Kurzus létrehozása |
+| `/api/courses/{id}` | PUT | Kurzus szerkesztése |
+| `/api/admin/courses/{id}` | DELETE | Kurzus törlése (kaszkád) |
+| `/api/courses/{id}/modules` | POST | Modul hozzáadása |
+| `/api/admin/modules/{id}` | DELETE | Modul törlése |
+| `/api/courses/{id}/modules/{mid}/exercises` | POST | Feladat hozzáadása |
+| `/api/admin/exercises/{id}` | DELETE | Feladat törlése |
+
+### Webhook
+
+| Endpoint | Metódus | Leírás |
+|----------|---------|--------|
+| `/api/webhooks/github` | POST | GitHub workflow_run webhook fogadása |
 
 ## Hozzájárulás
 
@@ -117,6 +172,7 @@ Szívesen fogadjuk a hozzájárulásokat! Olvasd el a [CONTRIBUTING.md](CONTRIBU
 | [Felhasználói útmutató](docs/felhasznaloi-utmutato.md) | Oldalak, gombok, felhasználói folyamatok, admin panel |
 | [GitHub Classroom integráció](docs/github-classroom-integraciot.md) | Feladatok összekötése, repo_prefix, webhook, tanári útmutató |
 | [Karbantartás](docs/karbantartas-utmutato.md) | Függőségkezelés, monitoring, backup, biztonsági audit, incidenskezelés |
+| [Automatizálás](docs/automatizalas-beallitas.md) | Cron job-ok, VPS bootstrap, Discord értesítések, secrets kezelés |
 | [Hozzájárulás](CONTRIBUTING.md) | Fork, branch stratégia, PR küldés, kódstílus |
 
 A `good first issue` címkéjű [issue-k](../../issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) ideálisak kezdőknek.
