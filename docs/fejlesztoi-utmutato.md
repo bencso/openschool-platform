@@ -1,8 +1,11 @@
 # Fejlesztői útmutató
 
-> 📖 **Dokumentáció:** [Főoldal](../README.md) · [Architektúra](architektura.md) · [Telepítés](telepitesi-utmutato.md) · **Fejlesztői útmutató** · [Roadmap](jovokep-es-fejlesztesi-terv.md) · [Felhasználói útmutató](felhasznaloi-utmutato.md) · [GitHub Classroom](github-classroom-integraciot.md) · [Karbantartás](karbantartas-utmutato.md) · [Automatizálás](automatizalas-beallitas.md) · [Hozzájárulás](../CONTRIBUTING.md)
+> 📖 **Dokumentáció:** [Főoldal](../README.md) · [Architektúra](architektura.md) · [Telepítés](telepitesi-utmutato.md) · **Fejlesztői útmutató** · [Backend](backend-fejlesztes.md) · [Frontend](frontend-fejlesztes.md) · [Roadmap](jovokep-es-fejlesztesi-terv.md) · [Felhasználói útmutató](felhasznaloi-utmutato.md) · [GitHub Classroom](github-classroom-integraciot.md) · [Karbantartás](karbantartas-utmutato.md) · [Automatizálás](automatizalas-beallitas.md) · [Hozzájárulás](../CONTRIBUTING.md)
 
-Ez az útmutató lépésről lépésre végigvezet az OpenSchool Platform fejlesztői környezetének felállításán.
+Ez az útmutató a közös fejlesztői környezet felállítását és a megosztott eszközöket írja le. A backend és frontend specifikus részletekért lásd:
+
+- **[Backend fejlesztés](backend-fejlesztes.md)** — Python venv, FastAPI routerek, modellek, szolgáltatások, Ruff, pytest, Alembic migrációk
+- **[Frontend fejlesztés](frontend-fejlesztes.md)** — Astro projekt, oldalak, komponensek, kliens oldali JS, stílusok, admin panel
 
 ## Előfeltételek
 
@@ -66,32 +69,28 @@ Ha inkább kézzel szeretnéd, olvasd tovább a következő fejezeteket.
 
 ---
 
-## 3. Python virtuális környezet
+## 3. Python és Frontend telepítés
+
+### Backend (Python)
 
 ```bash
-# Venv létrehozása
 python3 -m venv .venv
-
-# Aktiválás
 source .venv/bin/activate
-
-# Függőségek telepítése
 pip install --upgrade pip
 pip install -r backend/requirements-dev.txt
 ```
 
-### Függőségek struktúra
+Részletek: [Backend fejlesztés — 1. Python virtuális környezet](backend-fejlesztes.md#1-python-virtuális-környezet)
 
-A Python függőségek két fájlra vannak bontva:
+### Frontend (Node.js)
 
-| Fájl | Tartalom | Használat |
-|------|----------|-----------|
-| `requirements.txt` | Produkciós csomagok (FastAPI, SQLAlchemy, stb.) | Docker build, éles deploy |
-| `requirements-dev.txt` | Fejlesztői eszközök (pytest, ruff, git-cliff) | Lokális fejlesztés, CI |
+```bash
+cd frontend
+npm install
+cd ..
+```
 
-A `requirements-dev.txt` első sora `-r requirements.txt`, ami automatikusan telepíti a produkciós csomagokat is. Ez a `package.json` `dependencies`/`devDependencies` megfelelője.
-
-> **Tipp:** A `.venv/` mappa a projekt gyökerében van, nem a `backend/`-ben. A VS Code automatikusan felismeri.
+Részletek: [Frontend fejlesztés — 1. Telepítés és indítás](frontend-fejlesztes.md#1-telepítés-és-indítás)
 
 ---
 
@@ -126,17 +125,7 @@ GITHUB_WEBHOOK_SECRET=   # Webhook titkos kulcs
 
 ---
 
-## 5. Frontend telepítés
-
-```bash
-cd frontend
-npm install
-cd ..
-```
-
----
-
-## 6. Pre-commit hookok
+## 5. Pre-commit hookok
 
 A pre-commit hookok automatikusan ellenőrzik a kódot minden commit előtt (linter, formázó, stb.).
 
@@ -172,7 +161,7 @@ pre-commit run --files backend/app/main.py
 
 ---
 
-## 7. VS Code beállítás
+## 6. VS Code beállítás
 
 A projekt tartalmaz előre konfigurált VS Code beállításokat (`.vscode/` mappa).
 
@@ -208,55 +197,28 @@ A `.vscode/settings.json` automatikusan konfigurálja:
 
 ---
 
-## 8. Linter és formázó (Ruff)
+## 7. Linter, tesztek és migrációk
 
-A projekt [Ruff](https://docs.astral.sh/ruff/)-ot használ Python linterként és formázóként.
+Ezek a témák a backend fejlesztési útmutatóban vannak részletesen leírva:
 
-### Konfiguráció
+| Téma | Referencia |
+|------|-----------|
+| **Ruff** (linter + formázó) | [Backend — 7. Linter és formázó](backend-fejlesztes.md#7-linter-és-formázó-ruff) |
+| **pytest** (tesztelés) | [Backend — 8. Tesztelés](backend-fejlesztes.md#8-tesztelés-pytest) |
+| **Alembic** (migrációk) | [Backend — 9. Adatbázis migrációk](backend-fejlesztes.md#9-adatbázis-migrációk-alembic) |
 
-A beállítások a `backend/pyproject.toml` fájlban vannak:
-
-```toml
-[tool.ruff]
-target-version = "py312"
-line-length = 120
-
-[tool.ruff.lint]
-select = ["E", "F", "I", "N", "W"]
-```
-
-| Szabálycsoport | Mit ellenőriz |
-|----------------|---------------|
-| `E` | PEP 8 stílus hibák |
-| `F` | Pyflakes (nem használt importok, változók) |
-| `I` | Import sorrend (isort) |
-| `N` | Elnevezési konvenciók (PEP 8) |
-| `W` | PEP 8 figyelmeztetések |
-
-### Használat
+Gyors parancsok:
 
 ```bash
-# Linter futtatása (csak ellenőrzés)
-cd backend
-ruff check .
-
-# Linter automatikus javítással
-ruff check --fix .
-
-# Formázó (csak ellenőrzés)
-ruff format --check .
-
-# Formázó (módosítás)
-ruff format .
-
-# Mindkettő egyszerre (Makefile)
-make lint     # ellenőrzés
-make format   # javítás
+make lint       # Ruff ellenőrzés (nem módosít)
+make format     # Ruff formázás (módosít)
+make test       # pytest futtatása
+make migrate    # Alembic migrációk futtatása
 ```
 
 ---
 
-## 9. Változásnapló (git-cliff)
+## 8. Változásnapló (git-cliff)
 
 A projekt [git-cliff](https://git-cliff.org/)-et használja a `CHANGELOG.md` automatikus generálásához a commit történetből. A conventional commit prefixek (`feat:`, `fix:`, `refactor:`, stb.) alapján csoportosítja a változásokat.
 
@@ -320,98 +282,7 @@ pip install git-cliff
 
 ---
 
-## 10. Tesztelés (pytest)
-
-### Tesztek futtatása
-
-```bash
-# Összes teszt
-cd backend
-pytest -v
-
-# Vagy a Makefile-lal (projekt gyökeréből):
-make test
-
-# Egy adott tesztfájl
-pytest tests/test_auth.py -v
-
-# Egy adott teszt
-pytest tests/test_auth.py::test_me_with_valid_token -v
-
-# Részletes kimenet hibánál
-pytest -v --tb=long
-```
-
-### Tesztstruktúra
-
-```
-backend/tests/
-├── test_admin.py         # Admin panel (statisztikák, felhasználók, törlés)
-├── test_auth.py          # Autentikáció (OAuth, JWT)
-├── test_certificates.py  # Tanúsítványok (PDF, QR)
-├── test_classroom.py     # GitHub Classroom integráció
-├── test_courses.py       # Kurzusok (CRUD, beiratkozás)
-└── test_health.py        # Health endpoint
-```
-
-### Tesztírási konvenciók
-
-- A tesztfájlok neve: `test_<modú>.py`
-- A tesztfüggvények neve: `test_<mit_tesztelünk>`
-- Minden tesztfájl saját SQLite adatbázist használ (`test_<modul>.db`)
-- Fixture-ök az adott tesztfájl elején definiálva
-- `client` fixture: `TestClient(app)` az API hívásokhoz
-- Mock-olt külső szolgáltatások (GitHub API, fájlrendszer)
-
-Példa:
-
-```python
-def test_list_courses_public(client):
-    """Kurzuslista elérhető bejelentkezés nélkül."""
-    response = client.get("/api/courses")
-    assert response.status_code == 200
-    assert isinstance(response.json(), list)
-```
-
----
-
-## 11. Adatbázis és migrációk (Alembic)
-
-### Migráció létrehozása
-
-```bash
-cd backend
-
-# Új migráció generálása (autogenerate a modell változásokból)
-alembic revision --autogenerate -m "add user profile fields"
-
-# Migrációk futtatása
-alembic upgrade head
-
-# Egy lépés visszavonása
-alembic downgrade -1
-
-# Jelenlegi verzió
-alembic current
-
-# Migráció történet
-alembic history
-```
-
-### Migrációs fájlok
-
-```
-backend/alembic/versions/
-├── 001_initial.py
-├── cefa39428d67_....py
-└── a1b2c3d4e5f6_add_github_token_and_classroom_url.py
-```
-
-> **Fontos:** Minden modell változtatáshoz (új oszlop, tábla módosítás) migráció szükséges!
-
----
-
-## 12. Docker fejlesztés
+## 9. Docker fejlesztés
 
 ### Szolgáltatások indítása
 
@@ -461,7 +332,7 @@ docker compose up --build -d
 
 ---
 
-## 13. Projektstruktúra
+## 10. Projektstruktúra
 
 ```
 openschool-platform/
@@ -533,8 +404,11 @@ openschool-platform/
 │
 └── docs/
     ├── architektura.md               # Rendszer architektúra
+    ├── automatizalas-beallitas.md     # Automatizálás beállítása
+    ├── backend-fejlesztes.md         # Backend fejlesztői útmutató
     ├── fejlesztoi-utmutato.md        # ← Ez a dokumentum
     ├── felhasznaloi-utmutato.md      # Felhasználói útmutató
+    ├── frontend-fejlesztes.md        # Frontend fejlesztői útmutató
     ├── github-classroom-integraciot.md # GitHub Classroom integráció
     ├── jovokep-es-fejlesztesi-terv.md # Jövőkép és fejlesztési terv
     ├── karbantartas-utmutato.md      # Karbantartási útmutató
@@ -543,7 +417,7 @@ openschool-platform/
 
 ---
 
-## 14. Fejlesztési munkafolyamat
+## 11. Fejlesztési munkafolyamat
 
 ### Új funkció hozzáadása (példa)
 
@@ -608,7 +482,7 @@ chore: update dependencies
 
 ---
 
-## 15. CI/CD pipeline
+## 12. CI/CD pipeline
 
 ### CI (minden push és PR esetén)
 
@@ -646,7 +520,7 @@ Ha a CI piros:
 
 ---
 
-## 16. Logok és hibakeresés
+## 13. Logok és hibakeresés
 
 ### Backend logok
 
@@ -710,7 +584,7 @@ docker compose exec backend alembic current
 
 ---
 
-## 17. Makefile parancsok összefoglalása
+## 14. Makefile parancsok összefoglalása
 
 ```bash
 # Fejlesztés

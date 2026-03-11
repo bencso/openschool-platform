@@ -167,7 +167,9 @@ Szívesen fogadjuk a hozzájárulásokat! Olvasd el a [CONTRIBUTING.md](CONTRIBU
 |---|---|
 | [Architektúra](docs/architektura.md) | Rendszer felépítés, adatmodell, auth folyamat, API struktúra |
 | [Telepítési útmutató](docs/telepitesi-utmutato.md) | Helyi fejlesztés, staging, éles VPS telepítés, SSL, backup |
-| [Fejlesztői útmutató](docs/fejlesztoi-utmutato.md) | Python venv, VS Code, pre-commit, Ruff, pytest, Docker, CI/CD, logok |
+| [Fejlesztői útmutató](docs/fejlesztoi-utmutato.md) | Környezet beállítás, VS Code, pre-commit, git-cliff, Docker, CI/CD, logok |
+| [Backend fejlesztés](docs/backend-fejlesztes.md) | Python venv, FastAPI routers, modellek, Ruff, pytest, Alembic migrációk |
+| [Frontend fejlesztés](docs/frontend-fejlesztes.md) | Astro oldalak, komponensek, kliens JS, CSS, admin panel, auth flow |
 | [Jövőkép és fejlesztési terv](docs/jovokep-es-fejlesztesi-terv.md) | Kurzusok, megvalósított funkciók, roadmap |
 | [Felhasználói útmutató](docs/felhasznaloi-utmutato.md) | Oldalak, gombok, felhasználói folyamatok, admin panel |
 | [GitHub Classroom integráció](docs/github-classroom-integraciot.md) | Feladatok összekötése, repo_prefix, webhook, tanári útmutató |
