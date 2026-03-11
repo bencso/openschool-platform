@@ -61,6 +61,10 @@
 - Add question and documentation issue templates
 - Regenerate CHANGELOG.md
 - Restructure docs/ into categorized subfolders
+- Regenerate CHANGELOG.md
+- Remove redundant API endpoints and project structure from README
+- Remove redundant local dev section from README
+- Remove redundant Makefile section from README
 
 ### ⚙️ Miscellaneous Tasks
 
