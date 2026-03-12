@@ -205,7 +205,7 @@ Kurzus részletei modulokkal és feladatokkal (publikus).
         {
           "id": 1,
           "name": "Hello World",
-          "repo_prefix": "python10-hello",
+          "repo_prefix": "python-alapok-hello",
           "classroom_url": "https://classroom.github.com/a/abc123",
           "order": 1
         }
@@ -305,7 +305,7 @@ Feladat hozzáadása modulhoz.
 ```json
 {
   "name": "Hello World",
-  "repo_prefix": "python10-hello",
+  "repo_prefix": "python-alapok-hello",
   "classroom_url": "https://classroom.github.com/a/abc123",
   "order": 1,
   "required": true
@@ -723,7 +723,7 @@ GitHub webhook fogadása — `workflow_run` események alapján automatikusan fr
 
 **Válasz (200):**
 ```json
-{"status": "processed", "repo": "python10-hello-diak1", "updated": true}
+{"status": "processed", "repo": "python-alapok-hello-diak1", "updated": true}
 ```
 
 **Figyelmen kívül hagyott események:**

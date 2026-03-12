@@ -146,7 +146,7 @@ A feladatok (gyakorlatok), modulokhoz rendelve. Minden feladat opcionálisan egy
 | `id` | Integer | — | autoincrement | Elsődleges kulcs |
 | `module_id` | Integer (FK) | Nem | — | Szülő modul (`modules.id`) |
 | `name` | String | Nem | — | Feladat neve |
-| `repo_prefix` | String | Igen | — | GitHub Classroom repó prefix. A diákok repói `{prefix}-{username}` formátumúak (pl. `python10-hello-diak1`). A webhook és a sync-progress ezzel egyezteti a feladatot |
+| `repo_prefix` | String | Igen | — | GitHub Classroom repó prefix. A diákok repói `{prefix}-{username}` formátumúak (pl. `python-alapok-hello-diak1`). A webhook és a sync-progress ezzel egyezteti a feladatot |
 | `classroom_url` | String | Igen | — | GitHub Classroom assignment link (pl. `https://classroom.github.com/a/abc123`). A frontend megjeleníti — erre kattintva a diák elfogadja a feladatot |
 | `order` | Integer | Igen | `0` | Megjelenítési sorrend a modulon belül |
 | `required` | Boolean | Nem | `true` | Ha `true`, a feladat teljesítése szükséges a tanúsítvány kiállításához. Ha `false`, opcionális (nem számít a befejezettségbe) |
@@ -179,7 +179,7 @@ Feladatok haladási állapota — egy felhasználó egy feladathoz egy rekordot 
 | `id` | Integer | — | autoincrement | Elsődleges kulcs |
 | `user_id` | Integer (FK) | Nem | — | Felhasználó (`users.id`) |
 | `exercise_id` | Integer (FK) | Nem | — | Feladat (`exercises.id`) |
-| `github_repo` | String | Igen | — | A GitHub repó neve (pl. `python10-hello-diak1`). A webhook frissítéskor tölti ki |
+| `github_repo` | String | Igen | — | A GitHub repó neve (pl. `python-alapok-hello-diak1`). A webhook frissítéskor tölti ki |
 | `status` | Enum | Nem | `not_started` | Állapot: `not_started`, `in_progress`, `completed` |
 | `completed_at` | DateTime | Igen | — | Befejezés időpontja. Csak `completed` státuszhoz van kitöltve |
 

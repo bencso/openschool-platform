@@ -61,15 +61,15 @@ Az ajánlott csatornastruktúra kurzusonként bővíthető:
   #közlemények          — fontos értesítések (csak admin/tanár írhat)
   #hasznos-linkek      — dokumentáció, repó, eszközök linkjei
 
-🐍 PYTHON 10  (példa kurzus)
-  #python10-általános  — általános kérdések, beszélgetés
-  #python10-segítség   — heti szálak a kérdésekhez
-  #python10-megoldások — elfogadott megoldások, tippek
+🐍 PYTHON ALAPOK  (példa kurzus)
+  #python-alapok-általános  — általános kérdések, beszélgetés
+  #python-alapok-segítség   — heti szálak a kérdésekhez
+  #python-alapok-megoldások — elfogadott megoldások, tippek
 
-⚡ BACKEND 13  (példa kurzus)
-  #backend13-általános
-  #backend13-segítség
-  #backend13-megoldások
+⚡ BACKEND FASTAPI  (példa kurzus)
+  #backend-általános
+  #backend-segítség
+  #backend-megoldások
 
 🤖 AUTOMATIZÁCIÓ
   #ops-alerts          — VPS monitoring értesítések (webhook)
