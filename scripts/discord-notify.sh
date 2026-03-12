@@ -117,5 +117,6 @@ if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
 else
     echo "Discord notification failed (HTTP $HTTP_CODE)" >&2
     echo "Response: $(cat /tmp/discord_response.txt 2>/dev/null)" >&2
-    exit 1
+    echo "Continuing without Discord notification."
+    exit 0
 fi
