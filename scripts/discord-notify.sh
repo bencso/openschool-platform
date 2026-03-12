@@ -40,6 +40,8 @@ fi
 # --- Build embed --------------------------------------------------------------
 SHORT_COMMIT="${COMMIT:0:7}"
 TITLE="${TITLE:-CI/CD notification}"
+# Only use the first line (commit subject), discard multi-line body
+TITLE="${TITLE%%$'\n'*}"
 
 case "$STATUS" in
     success)
@@ -77,6 +79,10 @@ S_REPO=$(sanitize "$REPO")
 S_AUTHOR=$(sanitize "$AUTHOR")
 S_URL=$(sanitize "$URL")
 
+# Discord embed title max 256 chars — truncate after adding emoji prefix
+EMBED_TITLE="${EMOJI} ${S_TITLE}"
+EMBED_TITLE="${EMBED_TITLE:0:256}"
+
 # Build URL line conditionally
 URL_LINE=""
 if [ -n "$S_URL" ]; then
@@ -87,7 +93,7 @@ PAYLOAD=$(cat <<EOF
 {
   "embeds": [{
     ${URL_LINE}
-    "title": "${EMOJI} ${S_TITLE}",
+    "title": "${EMBED_TITLE}",
     "color": ${COLOR},
     "fields": [
       {"name": "Státusz", "value": "${STATUS_TEXT}", "inline": true},
