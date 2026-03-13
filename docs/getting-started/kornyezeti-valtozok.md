@@ -55,6 +55,7 @@ Ezeket a `.env` fájlban kell beállítani a projekt gyökerében. A backend a `
 | `GITHUB_CLIENT_ID` | Bejelentkezéshez | `""` | GitHub OAuth App Client ID. Létrehozás: [github.com/settings/developers](https://github.com/settings/developers) |
 | `GITHUB_CLIENT_SECRET` | Bejelentkezéshez | `""` | GitHub OAuth App Client Secret. **Élesben kötelező** |
 | `GITHUB_ORG` | Nem | `""` | GitHub szervezet neve a repók kereséséhez. Ha üres, a felhasználó saját fiókja alatt keres |
+| `GITHUB_ORG_ADMIN_TOKEN` | Nem | `""` | Personal Access Token (classic) org tulajdonostól, `admin:org` scope-pal. Ha be van állítva (és `GITHUB_ORG` is kitöltve), az első bejelentkezéskor automatikusan meghívja a felhasználót a GitHub szervezetbe. Létrehozás: [github.com/settings/tokens](https://github.com/settings/tokens) → „Generate new token (classic)" → `admin:org` |
 | `GITHUB_WEBHOOK_SECRET` | Ajánlott | `""` | Webhook HMAC-SHA256 aláíró kulcs. Ha üres, webhook aláírás ellenőrzés kikapcsolt. Generálás: `openssl rand -hex 20` |
 
 ---
@@ -76,6 +77,7 @@ A `docker-compose.yml` és `docker-compose.prod.yml` a `.env` fájlból olvassa 
 | `GITHUB_CLIENT_ID` | Backend container | OAuth azonosító |
 | `GITHUB_CLIENT_SECRET` | Backend container | OAuth titkos kulcs |
 | `GITHUB_ORG` | Backend container | Szervezet |
+| `GITHUB_ORG_ADMIN_TOKEN` | Backend container | Org meghívó token |
 | `GITHUB_WEBHOOK_SECRET` | Backend container | Webhook secret |
 | `PROD_DOMAIN` | Nginx container | Éles domain név (envsubst template-hez) |
 | `STAGING_DOMAIN` | Nginx container | Staging domain név (envsubst template-hez) |
@@ -178,3 +180,4 @@ A `backend/app/config.py` fájlban a `Settings` osztály Pydantic `model_validat
 | `ENVIRONMENT=production` + `SECRET_KEY=change-me-in-production` | **ValueError** — a backend nem indul el |
 | `ENVIRONMENT=production` + `GITHUB_CLIENT_SECRET` üres | **ValueError** — a backend nem indul el |
 | `ENVIRONMENT=production` + `GITHUB_WEBHOOK_SECRET` üres | **Warning** — a backend elindul, de webhook aláírás nem ellenőrzött |
+| `GITHUB_ORG_ADMIN_TOKEN` üres (bármely környezet) | Org meghívás kimarad — a bejelentkezés normálisan működik, de a felhasználó nem kap automatikus meghívást a GitHub szervezetbe |

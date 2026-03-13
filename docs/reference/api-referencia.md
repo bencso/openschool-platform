@@ -94,6 +94,8 @@ GitHub OAuth callback — kódot fogad, tokent cserél, felhasználót hoz létr
 
 **Felhasználó létrehozás/frissítés:** A callback létrehoz egy új `User` rekordot (ha nem létezik `github_id` alapján), vagy frissíti a meglévőt (`username`, `avatar_url`, `email`, `github_token`, `last_login`).
 
+**Automatikus org meghívás:** Ha a `GITHUB_ORG` és `GITHUB_ORG_ADMIN_TOKEN` konfigurálva van, a callback automatikusan meghívja a felhasználót a GitHub szervezetbe (member szerepkörrel). Ha a meghívás sikertelen, a bejelentkezés továbbra is megtörténik.
+
 ---
 
 ### `GET /api/auth/me`

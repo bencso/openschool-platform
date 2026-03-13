@@ -64,7 +64,7 @@ frontend/
     │
     ├── lib/
     │   ├── api.js             # API wrapper — token kezelés, auto-refresh
-    │   ├── config.js          # Oldal konfiguráció (név, GitHub URL)
+    │   ├── config.js          # Oldal konfiguráció (név, GitHub URL, Discord URL, Tudásbázis URL)
     │   ├── dashboard.js       # Dashboard logika — kurzusok, tanúsítványok, sync
     │   └── course-detail.js   # Kurzus részletek — modulok, beiratkozás
     │
@@ -148,7 +148,7 @@ import Layout from '../layouts/Layout.astro';
 
 | Oldal | Fájl | Leírás |
 |-------|------|--------|
-| Kezdőoldal | `pages/index.astro` | Hero szekció, „Hogyan működik?" lépések, kurzus előnézet |
+| Kezdőoldal | `pages/index.astro` | Hero szekció, gyorsindítási útmutató, „Hogyan működik?" lépések, közösség szekció (Discord, GitHub, Tudásbázis), kurzus előnézet |
 | Kurzuslista | `pages/courses/index.astro` | Összes kurzus kártya nézetben |
 | Kurzus részletek | `pages/courses/[slug].astro` | Modulok, feladatok, beiratkozás gomb, Classroom linkek |
 | Belépés | `pages/login.astro` | GitHub OAuth gomb, token kezelés URL fragment-ből |

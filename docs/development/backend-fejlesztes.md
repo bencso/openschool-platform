@@ -77,7 +77,7 @@ backend/
 │       ├── certificate.py    # is_course_completed() — teljesítés ellenőrzés
 │       ├── pdf.py            # PDF generálás fpdf2-vel
 │       ├── qr.py             # QR kód generálás
-│       ├── github.py         # GitHub Actions állapot lekérdezés
+│       ├── github.py         # GitHub Actions állapot lekérdezés + org meghívás
 │       └── progress.py       # Haladás frissítés GitHub CI alapján
 ├── alembic/                  # Adatbázis migrációk
 ├── tests/                    # pytest tesztek
@@ -102,6 +102,7 @@ class Settings(BaseSettings):
     github_client_id: str = ""
     github_client_secret: str = ""
     github_org: str = ""
+    github_org_admin_token: str = ""
     github_webhook_secret: str = ""
 ```
 
@@ -156,12 +157,12 @@ Minden router a `backend/app/routers/` mappában van és a `main.py`-ban regiszt
 | Endpoint | Metódus | Leírás |
 |----------|---------|--------|
 | `/api/auth/login` | GET | GitHub OAuth átirányítás |
-| `/api/auth/callback` | GET | OAuth callback — user létrehozás/frissítés, JWT generálás |
+| `/api/auth/callback` | GET | OAuth callback — user létrehozás/frissítés, JWT generálás, org meghívás (ha konfigurálva) |
 | `/api/auth/me` | GET | Aktuális felhasználó adatai |
 | `/api/auth/refresh` | POST | Új access token a refresh token cookie-ból |
 | `/api/auth/logout` | POST | Refresh token cookie törlése |
 
-**OAuth flow:** A callback végpont cseréli a GitHub kódot access tokenre, lekérdezi a felhasználó adatait, majd JWT-t generál. A token a `/login#token=eyJ...` fragment-ben tér vissza. A refresh token httpOnly cookie-ként tárolódik.
+**OAuth flow:** A callback végpont cseréli a GitHub kódot access tokenre, lekérdezi a felhasználó adatait, majd JWT-t generál. Ha a `GITHUB_ORG` és `GITHUB_ORG_ADMIN_TOKEN` konfigurálva van, automatikusan meghívja a felhasználót a GitHub szervezetbe. A token a `/login#token=eyJ...` fragment-ben tér vissza. A refresh token httpOnly cookie-ként tárolódik.
 
 ### `courses.py` — Kurzusok
 
@@ -224,7 +225,7 @@ A webhook a `workflow_run` eseményt figyeli (`action=completed`, `conclusion=su
 | **certificate** | `services/certificate.py` | `is_course_completed()` — ellenőrzi, hogy az összes kötelező feladat teljesítve van-e |
 | **pdf** | `services/pdf.py` | Tanúsítvány PDF generálás (fpdf2) |
 | **qr** | `services/qr.py` | QR kód generálás a verifikációs URL-hez |
-| **github** | `services/github.py` | GitHub Actions workflow állapot lekérdezés egyéni repókhoz |
+| **github** | `services/github.py` | GitHub Actions workflow állapot lekérdezés egyéni repókhoz + `invite_user_to_org()` — felhasználó automatikus meghívása a GitHub szervezetbe |
 | **progress** | `services/progress.py` | `update_progress_for_user()` — GitHub CI alapján haladás frissítés |
 
 ---

@@ -10,15 +10,19 @@ Ez a dokumentum leírja, hogy az OpenSchool platform felülete hogyan működik:
 
 ### Főoldal (`/`)
 
-A nyitóoldal három részből áll:
+A nyitóoldal öt részből áll:
 
 1. **Héró szekció** — rövid bevezető és egy „Kurzusok böngészése" gomb, amely a `/courses` oldalra navigál.
-2. **Hogyan működik?** — három lépésben bemutatja a folyamatot: Beiratkozás → Feladatok → Tanúsítvány.
-3. **Elérhető kurzusok** — az API-ból (`GET /api/courses`) betöltött kurzuskártyák. Minden kártyán egy **„Részletek"** gomb, amely a kurzus részletező oldalára (`/courses/{id}`) visz.
+2. **Gyorsindítási útmutató** — négy lépésben bemutatja, hogyan kezdhetsz el tanulni: GitHub fiók → Kurzus kiválasztása → Feladatok megoldása → Közösség.
+3. **Hogyan működik?** — három lépésben bemutatja a folyamatot: Beiratkozás → Feladatok → Tanúsítvány.
+4. **Közösség és Nyílt forráskód** — három kártya: Discord közösség (meghívó link), GitHub repo (forráskód), Tudásbázis (tananyag).
+5. **Elérhető kurzusok** — az API-ból (`GET /api/courses`) betöltött kurzuskártyák. Minden kártyán egy **„Részletek"** gomb, amely a kurzus részletező oldalára (`/courses/{id}`) visz.
 
 ### Belépés (`/login`)
 
 Egyetlen gomb: **„Belépés GitHub-bal"** — átirányít a GitHub OAuth folyamatba (`/api/auth/login`). Sikeres belépés után a backend JWT tokent ad vissza query paraméterben (`?token=...`), amelyet a frontend `localStorage`-ba ment, majd a dashboardra irányít.
+
+> **Megjegyzés:** Az első bejelentkezéskor — ha konfigurálva van — automatikus meghívást kapsz a GitHub szervezetbe, így hozzáférsz a kurzusok feladataihoz.
 
 ### Kurzuslista (`/courses`)
 
@@ -140,6 +144,7 @@ A fejléc (header) minden oldalon megjelenik:
 | Elem | Funkció |
 |---|---|
 | **OpenSchool** logó | Főoldalra navigál |
+| **Discord** ikon | A Discord közösségi szerverre navigál (új lapon nyílik meg) |
 | **Kurzusok** | `/courses` oldalra navigál |
 | **Dashboard** | `/dashboard` oldalra navigál |
 | **Admin** | `/admin` oldalra navigál (csak admin felhasználóknak jelenik meg) |
