@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     environment: str = "development"
     allowed_origins: str = "http://localhost,http://localhost:4321"
     github_org: str = ""
+    github_org_admin_token: str = ""
     github_webhook_secret: str = ""
     github_client_id: str = ""
     github_client_secret: str = ""

@@ -5,6 +5,28 @@ import httpx
 logger = logging.getLogger(__name__)
 
 
+def invite_user_to_org(username: str, org: str, admin_token: str) -> bool:
+    """Invite a GitHub user to the organization. Returns True if successful or already a member."""
+    try:
+        response = httpx.put(
+            f"https://api.github.com/orgs/{org}/memberships/{username}",
+            headers={
+                "Authorization": f"Bearer {admin_token}",
+                "Accept": "application/vnd.github+json",
+            },
+            json={"role": "member"},
+            timeout=10.0,
+        )
+        if response.status_code in (200, 201):
+            logger.info(f"Invited {username} to {org}")
+            return True
+        logger.warning(f"Org invite failed for {username}: {response.status_code} {response.text}")
+        return False
+    except httpx.HTTPError as e:
+        logger.error(f"Org invite error for {username}: {e}")
+        return False
+
+
 async def check_exercise_status(owner: str, repo_name: str, github_token: str) -> bool:
     """Check if the latest CI workflow run in the repo was successful."""
     try:

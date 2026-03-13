@@ -10,6 +10,7 @@ from app.auth.jwt import create_access_token, create_refresh_token
 from app.config import settings
 from app.database import get_db
 from app.models.user import User
+from app.services.github import invite_user_to_org
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
@@ -74,6 +75,10 @@ def auth_callback(code: str, db: Session = Depends(get_db), response: Response =
 
     db.commit()
     db.refresh(user)
+
+    # Auto-invite user to GitHub org (if configured)
+    if settings.github_org and settings.github_org_admin_token:
+        invite_user_to_org(user.username, settings.github_org, settings.github_org_admin_token)
 
     # Generate tokens
     access_token = create_access_token(user.id)
