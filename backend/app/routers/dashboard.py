@@ -128,7 +128,8 @@ async def sync_progress(db: Session = Depends(get_db), current_user: User = Depe
     """Sync progress from GitHub CI status for all enrolled exercises."""
     # Prefer org admin token for reading Actions status on org-owned repos;
     # fall back to the student's own token for personal repos.
-    github_token = settings.github_org_admin_token if settings.github_org and settings.github_org_admin_token else current_user.github_token
+    use_org = settings.github_org and settings.github_org_admin_token
+    github_token = settings.github_org_admin_token if use_org else current_user.github_token
 
     if not github_token:
         raise HTTPException(status_code=400, detail="No GitHub token — please log in again")

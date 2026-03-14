@@ -501,7 +501,7 @@ Haladás szinkronizálása a GitHub CI állapotából. Végigmegy az összes bei
 | **Siker** | `200` — frissített kurzuslista (mint `GET /api/me/courses`) |
 | **Hiba** | `400` — nincs GitHub token (újbóli bejelentkezés szükséges) |
 
-**Működés:** A backend a `GITHUB_ORG` (vagy a felhasználó GitHub neve) szervezet alatt keresi a `{repo_prefix}-{username}` nevű repókat, és lekéri a legutóbbi sikeres CI futást a GitHub API-ból.
+**Működés:** A backend a `GITHUB_ORG` (vagy a felhasználó GitHub neve) szervezet alatt keresi a `{repo_prefix}-{username}` nevű repókat, és lekéri a legutóbbi sikeres CI futást a GitHub API-ból. Ha a `GITHUB_ORG` és `GITHUB_ORG_ADMIN_TOKEN` konfigurálva van, a szerver az admin tokent használja a lekérdezéshez (a tanuló OAuth tokenjének nincs jogosultsága az org privát repók Actions API-jához). Ha nincs org beállítva, a tanuló saját tokenje kerül felhasználásra.
 
 ---
 

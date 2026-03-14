@@ -101,7 +101,7 @@ A GitHub OAuth-tal regisztrált felhasználók. Minden felhasználónak egyedi `
 | `role` | Enum | Nem | `student` | Szerepkör: `student`, `mentor`, `admin`. Admin módosíthatja |
 | `created_at` | DateTime | Igen | `now()` | Regisztráció időpontja (első bejelentkezés) |
 | `last_login` | DateTime | Igen | — | Utolsó bejelentkezés időpontja. Minden login-kor frissül |
-| `github_token` | String | Igen | — | GitHub access token a CI állapot lekérdezéséhez. Minden login-kor frissül. A `sync-progress` végpont használja |
+| `github_token` | String | Igen | — | GitHub access token. Minden login-kor frissül. A `sync-progress` végpont az org admin tokent (`GITHUB_ORG_ADMIN_TOKEN`) részesíti előnyben; ez a token fallback, ha nincs org beállítva |
 
 **Egyedi megszorítások:** `github_id` (unique), `username` (unique)
 
