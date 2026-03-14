@@ -126,10 +126,14 @@ def update_exercise_progress(
 @router.post("/sync-progress")
 async def sync_progress(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Sync progress from GitHub CI status for all enrolled exercises."""
-    if not current_user.github_token:
+    # Prefer org admin token for reading Actions status on org-owned repos;
+    # fall back to the student's own token for personal repos.
+    github_token = settings.github_org_admin_token if settings.github_org and settings.github_org_admin_token else current_user.github_token
+
+    if not github_token:
         raise HTTPException(status_code=400, detail="No GitHub token — please log in again")
 
     owner = settings.github_org or current_user.username
-    await update_progress_for_user(db, current_user, current_user.github_token, owner)
+    await update_progress_for_user(db, current_user, github_token, owner)
 
     return my_courses(db=db, current_user=current_user)
