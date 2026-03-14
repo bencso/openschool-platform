@@ -41,13 +41,39 @@ A közösségi funkciók szálakat (threads), fórumokat és moderációs eszkö
 
 | Szerepkör | Szín | Jogosultságok |
 |-----------|------|---------------|
-| `@Admin` | Piros | Minden jogosultság |
-| `@Mentor` | Kék | Üzenetek kezelése, szálak létrehozása, pinelés |
-| `@Mentor` | Zöld | Szálak létrehozása, reakciók kezelése |
-| `@Tanuló` | Szürke | Üzenetek küldése, szálak használata |
-| `@Bot` | Sárga | Webhookok, üzenetek küldése |
+| `@Admin` | 🔴 Piros | Minden jogosultság (Administrator) |
+| `@Mentor` | 🟣 Lila | Üzenetek kezelése, szálak létrehozása, pinelés, Mention Everyone |
+| `@Kontribútor` | 🔵 Kék | Szálak létrehozása, kezelése, reakciók kezelése |
+| `@Tanuló` | 🟢 Zöld | Üzenetek küldése, szálak használata |
+| `@Bot` | 🟡 Sárga | Webhookok, üzenetek küldése |
 
-Beállítás: **Szerver beállítások → Szerepkörök → Új szerepkör**
+**Manuális beállítás:** Szerver beállítások → Szerepkörök → Új szerepkör
+
+**Automatikus beállítás szkripttel:**
+
+A `scripts/setup-discord-roles.sh` szkript a Discord API-n keresztül automatikusan létrehozza a szerepköröket:
+
+```bash
+# Előfeltétel: Discord bot token és Guild ID (lásd lent)
+DISCORD_BOT_TOKEN="your-bot-token" DISCORD_GUILD_ID="your-guild-id" ./scripts/setup-discord-roles.sh
+```
+
+**A bot token beszerzése:**
+
+1. [Discord Developer Portal](https://discord.com/developers/applications) → **New Application**
+2. **Bot** fül → **Reset Token** → másold ki a tokent
+3. **OAuth2 → URL Generator** → scope: `bot` → jogosultság: `Manage Roles` → generált URL-lel hívd meg a botot a szerverre
+
+**A Guild ID beszerzése:**
+
+1. Discord → Beállítások → Haladó → **Fejlesztői mód** bekapcsolása
+2. Jobb klikk a szerver nevére → **Szerver ID másolása**
+
+Vagy a meghívó linkből a Discord API-val:
+
+```bash
+curl -s https://discord.com/api/v10/invites/BrKd45S6 | python3 -c "import sys,json; print(json.load(sys.stdin)['guild_id'])"
+```
 
 ---
 
