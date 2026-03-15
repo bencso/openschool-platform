@@ -53,11 +53,16 @@ async function loadDashboard() {
         const isComplete = c.progress_percent >= 100;
 
         // Az adott kurzus module-ok, és ezeknek a státuszainak lekérdezése
-        const progressRes = await fetch(
-          `/api/me/courses/${c.course_id}/progress`,
-          { headers },
-        );
+        const [progressRes, coursesRes] = await Promise.all([
+          fetch(`/api/me/courses/${c.course_id}/progress`, { headers }),
+          fetch(`/api/courses/${c.course_id}`, { headers }),
+        ]);
+
         const progressData = await progressRes.json();
+        const coursesData = await coursesRes.json();
+
+        console.log(progressData);
+        console.log(coursesData);
 
         let successfulModules = 0;
         for (const pr of progressData) {
@@ -84,9 +89,17 @@ async function loadDashboard() {
             <strong class="modulelists_-title">${module.module_name} - teljesítve: ${module.exercises.filter((ex) => ex.status === "completed").length} / ${module.exercises.length}</strong>
             <ul class="modulelists_dropdownlist" data-id="${module.module_id}">
               ${module.exercises
-                .map(
-                  (ex) => `<li class="modulelists_dropdownlist-item">
-                   <span>${ex.name}</span>
+                .map((ex) => {
+                  const courseModule = coursesData.modules.find(
+                    (m) => m.id === module.module_id,
+                  );
+
+                  const exercise = courseModule?.exercises.find(
+                    (e) => e.id === ex.id,
+                  );
+
+                  return `<li class="modulelists_dropdownlist-item">
+                 ${exercise?.classroom_url ? `<a href="${exercise.classroom_url}">${ex.name}</a>` : `<span>${ex.name}</span>`}
                     <span style="color:${
                       ex.status === "completed"
                         ? "green"
@@ -96,8 +109,8 @@ async function loadDashboard() {
                     }; font-weight:500; font-size: 10px;">
                       ${translateStatus(ex.status)}
                     </span>
-                  </li>`,
-                )
+                  </li>`;
+                })
                 .join("")}
             </ul>
           </div>
