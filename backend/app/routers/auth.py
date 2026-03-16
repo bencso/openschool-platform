@@ -29,7 +29,7 @@ def auth_login(request: Request, response: Response):
     import secrets
 
     state = secrets.token_urlsafe(32)
-    url = f"{GITHUB_AUTHORIZE_URL}?client_id={settings.github_client_id}&scope=read:user%20user:email&state={state}"
+    url = f"{GITHUB_AUTHORIZE_URL}?client_id={settings.github_client_id}&scope=read:user%20user:email%20repo&state={state}"
     resp = RedirectResponse(url=url)
     resp.set_cookie(
         key="oauth_state",

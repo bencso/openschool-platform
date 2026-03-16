@@ -78,7 +78,7 @@ Publikus — hitelesítés nem szükséges.
 |---|---|
 | **Hitelesítés** | Nem szükséges |
 | **Válasz** | `302` redirect a GitHub-ra |
-| **Scope** | `read:user user:email` |
+| **Scope** | `read:user user:email repo` |
 | **Rate limit** | 10 kérés/perc |
 | **Cookie** | `oauth_state` beállítása (CSRF védelem, 10 perc érvényesség) |
 
