@@ -105,6 +105,7 @@ Példa: `feat: add user profile page`
    ```bash
    pytest -v
    ruff check . && ruff format --check .
+   cd frontend && npm run lint && npm run format:check
    ```
 
 4. Commitold és pushold:
@@ -119,7 +120,7 @@ Példa: `feat: add user profile page`
 ### PR ellenőrzőlista
 
 - [ ] A tesztek zöldek (`pytest -v`)
-- [ ] A linter nem jelez hibát (`ruff check .`)
+- [ ] A linter nem jelez hibát (`ruff check .` + `npm run lint`)
 - [ ] Új publikus függvényeknek van docstring-jük
 - [ ] Az érintett dokumentáció frissítve van (lásd: [Dokumentálási útmutató](docs/guides/dokumentacios-utmutato.md))
 - [ ] A `README.md` API táblázata és docs indexe naprakész
@@ -134,7 +135,8 @@ Példa: `feat: add user profile page`
 ## Kódstílus
 
 - **Python:** [ruff](https://docs.astral.sh/ruff/) linter és formatter, max. 120 karakter/sor
-- **Tesztek:** pytest, a tesztfájlok a `backend/tests/` mappában
+- **TypeScript/React:** [ESLint](https://eslint.org/) linter + [Prettier](https://prettier.io/) formatter
+- **Tesztek:** pytest (backend), Vitest (frontend)
 - **Típusannotáció:** ajánlott, de nem kötelező
 
 ## Közösségi szerepkörök

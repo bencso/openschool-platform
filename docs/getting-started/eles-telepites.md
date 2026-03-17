@@ -426,12 +426,12 @@ git push origin main
 
 ### CI (Folyamatos integráció)
 
-Minden push (`main`, `develop`) és PR esetén fut:
+Minden push (`main`, `develop`) és PR esetén fut (4 párhuzamos job):
 
-1. **Lint lépés** — `ruff check` és `ruff format --check` ellenőrzés
-2. **Teszt lépés** — `pytest -v --tb=short` (csak ha a lint sikeres)
-
-A tesztek SQLite-ot használnak, nem igényelnek PostgreSQL-t.
+1. **Backend lint** — `ruff check` + `ruff format --check`
+2. **Frontend lint** — ESLint + Prettier format check + `tsc --noEmit`
+3. **Backend test** — `pytest -v --tb=short` (SQLite-ot használ, nem igényel PostgreSQL-t)
+4. **Frontend test** — Vitest futtatás + `npm run build`
 
 ### CD (Folyamatos telepítés)
 

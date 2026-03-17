@@ -297,12 +297,19 @@ A Ruff automatikusan linteli a tesztfájlokat is. A `B008` szabály ki van kapcs
 
 ## 7. CI integráció
 
-A GitHub Actions CI workflow minden push-ra és PR-re automatikusan:
+A GitHub Actions CI workflow minden push-ra és PR-re automatikusan 4 párhuzamos jobot futtat:
 
+**Backend:**
 1. Python 3.12 környezet felállítása
 2. Függőségek telepítése (`requirements-dev.txt`)
-3. Ruff lint futtatása
+3. Ruff lint futtatása (`ruff check` + `ruff format --check`)
 4. `pytest -v` futtatása
 5. Discord értesítés küldése (ha `DISCORD_WEBHOOK_CI` secret be van állítva)
 
-Ha a tesztek elbuknak, a PR nem merge-elhető.
+**Frontend:**
+1. Node.js 20 környezet felállítása
+2. Függőségek telepítése (`npm ci`)
+3. ESLint + Prettier format check + `tsc --noEmit`
+4. Vitest futtatása + `npm run build`
+
+Ha bármelyik job elbukik, a PR nem merge-elhető.

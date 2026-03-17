@@ -1,8 +1,8 @@
-# Frontend fejlesztés (Astro)
+# Frontend fejlesztés (React + TypeScript)
 
 > 📖 **Dokumentáció:** [Főoldal](../../README.md) · [Architektúra](../getting-started/architektura.md) · [Telepítés](../getting-started/telepitesi-utmutato.md) · [Környezeti változók](../getting-started/kornyezeti-valtozok.md) · [Fejlesztői útmutató](fejlesztoi-utmutato.md) · [Backend](backend-fejlesztes.md) · **Frontend** · [Tesztelés](tesztelesi-utmutato.md) · [API referencia](../reference/api-referencia.md) · [Adatbázis](../reference/adatbazis-sema.md) · [Karbantartás](../operations/karbantartas-utmutato.md) · [Automatizálás](../operations/automatizalas-beallitas.md) · [GitHub Classroom](../integrations/github-classroom-integraciot.md) · [Discord](../integrations/discord-integracio.md) · [Felhasználói útmutató](../guides/felhasznaloi-utmutato.md) · [Dokumentálás](../guides/dokumentacios-utmutato.md) · [Roadmap](../jovokep-es-fejlesztesi-terv.md) · [Hozzájárulás](../../CONTRIBUTING.md)
 
-Ez az útmutató a frontend fejlesztéséhez tartalmaz mindent: Astro projekt felépítés, oldalak, komponensek, kliens oldali JavaScript, stílusok és a backend API-val való kommunikáció.
+Ez az útmutató a frontend fejlesztéséhez tartalmaz mindent: React + TypeScript projekt felépítés, oldalak, komponensek, stílusok, tesztelés és a backend API-val való kommunikáció.
 
 > **Általános fejlesztői útmutató** (Docker, pre-commit, VS Code, Git, CI/CD, Makefile): [fejlesztoi-utmutato.md](fejlesztoi-utmutato.md)
 > **Dokumentálási útmutató** (docstring-ek, API docs, README karbantartás): [dokumentacios-utmutato.md](../guides/dokumentacios-utmutato.md)
@@ -19,21 +19,43 @@ npm install
 ### Fejlesztői szerver
 
 ```bash
-npm run dev     # Astro dev szerver: http://localhost:4321
+npm run dev     # Vite dev szerver: http://localhost:4321
 ```
 
-A dev szerver hot reload-dal működik — a fájl módosítások automatikusan megjelennek a böngészőben.
+A dev szerver hot reload-dal (HMR) működik — a fájl módosítások azonnal megjelennek a böngészőben.
 
-> **Fontos:** A dev szerver önmagában nem tud API hívásokat kiszolgálni. A teljes fejlesztéshez a Docker Compose-zal kell futtatni az egész stacket (`make up`), ami az nginx-en keresztül összekötni a frontendet a backenddel.
+A Vite dev szerver proxy-zzaa `/api` hívásokat a backend-re (`http://localhost:8000`), így lokális fejlesztés Docker nélkül is lehetséges. A teljes stack (backend + db + nginx) futtatásához a Docker Compose-t használd (`make up`).
 
 ### Build
 
 ```bash
-npm run build    # Statikus fájlok generálása → dist/
-npm run preview  # Build kimenet előnézete: http://localhost:4321
+npm run build    # TypeScript ellenőrzés + Vite build → dist/
 ```
 
-Az Astro statikus HTML/CSS/JS fájlokat generál. A build kimenetet az nginx szolgálja ki. A böngészőből érkező `/api/*` hívásokat az nginx a FastAPI backend-re proxyzi.
+A Vite egyetlen HTML fájlt és optimalizált JS/CSS bundle-t generál. A build kimenetet az nginx szolgálja ki. A böngészőből érkező `/api/*` hívásokat az nginx a FastAPI backend-re proxyzi.
+
+### Típusellenőrzés
+
+```bash
+npx tsc --noEmit    # TypeScript ellenőrzés build nélkül
+```
+
+### Linting és formázás
+
+A projekt ESLint-et használ lintingre és Prettier-t kódformázásra.
+
+```bash
+npm run lint          # ESLint ellenőrzés
+npm run lint:fix      # ESLint automatikus javítás
+npm run format:check  # Prettier formázás ellenőrzése
+npm run format        # Prettier formázás (módosít)
+```
+
+**ESLint** (`eslint.config.js`): TypeScript + React szabályok, react-hooks és react-refresh pluginekkel. Flat config (ESLint 9).
+
+**Prettier** (`.prettierrc`): Egységes kódformázás — singleQuote, trailingComma: all, printWidth: 100, tabWidth: 2.
+
+A pre-commit hookok automatikusan futtatják mindkettőt commit előtt. A CI is ellenőrzi.
 
 ---
 
@@ -41,91 +63,118 @@ Az Astro statikus HTML/CSS/JS fájlokat generál. A build kimenetet az nginx szo
 
 ```
 frontend/
-├── astro.config.mjs       # Astro konfiguráció (output: static, port: 4321)
-├── package.json           # Node.js függőségek (astro ^5.0.0)
-├── tsconfig.json          # TypeScript konfig (strict mód)
+├── vite.config.ts         # Vite konfiguráció (React plugin, proxy, Vitest)
+├── eslint.config.js       # ESLint 9 flat config (TypeScript + React)
+├── .prettierrc            # Prettier formázó beállítások
+├── package.json           # Node.js függőségek
+├── tsconfig.json          # TypeScript konfig (strict mód, React JSX)
 │
-├── public/                # Statikus fájlok (favicon, képek — változtatás nélkül másolódnak)
+├── public/                # Statikus fájlok (favicon, képek)
 │
 └── src/
-    ├── env.d.ts           # Astro típus deklarációk
+    ├── main.tsx           # Belépési pont — React DOM render, BrowserRouter
+    ├── App.tsx            # Útvonalak definíciója (React Router)
     │
     ├── styles/
     │   └── global.css     # Globális stílusok (CSS változók, card, btn, progress-bar)
     │
-    ├── layouts/
-    │   └── Layout.astro   # Fő layout — header, footer, auth navigáció, hamburger menü
-    │
     ├── components/
-    │   ├── CourseCard.astro   # Kurzus kártya (név, leírás, link)
-    │   ├── Footer.astro       # Lábléc (copyright)
-    │   ├── Header.astro       # Fejléc (logo, navigáció, hamburger)
-    │   └── ProgressBar.astro  # Haladási sáv (percent, label)
+    │   ├── Layout.tsx        # Fő layout — header, footer, auth navigáció, hamburger menü
+    │   ├── CourseCard.tsx     # Kurzus kártya (név, leírás, link)
+    │   └── ProgressBar.tsx   # Haladási sáv (percent, label)
     │
     ├── lib/
-    │   ├── api.js             # API wrapper — token kezelés, auto-refresh
-    │   ├── config.js          # Oldal konfiguráció (név, GitHub URL, Discord URL, Tudásbázis URL)
-    │   ├── dashboard.js       # Dashboard logika — kurzusok, tanúsítványok, sync
-    │   └── course-detail.js   # Kurzus részletek — modulok, beiratkozás
+    │   ├── api.ts            # API wrapper — cookie-alapú auth, auto-refresh
+    │   ├── config.ts         # Oldal konfiguráció (név, GitHub URL, Discord URL, Tudásbázis URL)
+    │   └── types.ts          # TypeScript interfészek (User, Course, Module, stb.)
     │
-    └── pages/
-        ├── index.astro        # Kezdőoldal
-        ├── login.astro        # Belépés (GitHub OAuth)
-        ├── dashboard.astro    # Dashboard (haladás, tanúsítványok)
-        ├── courses/
-        │   ├── index.astro    # Kurzuslista
-        │   └── [slug].astro   # Kurzus részletei
-        ├── verify/
-        │   └── [id].astro     # Tanúsítvány publikus verifikáció
-        └── admin/
-            ├── index.astro    # Admin dashboard (statisztikák)
-            ├── users.astro    # Felhasználók kezelése (tábla, szerepkörök)
-            └── courses.astro  # Kurzusok kezelése (CRUD, modulok, feladatok)
+    ├── pages/
+    │   ├── HomePage.tsx       # Kezdőoldal
+    │   ├── LoginPage.tsx      # Belépés (GitHub OAuth)
+    │   ├── CoursesPage.tsx    # Kurzuslista
+    │   ├── CourseDetailPage.tsx # Kurzus részletei
+    │   ├── DashboardPage.tsx  # Dashboard (haladás, tanúsítványok)
+    │   ├── VerifyPage.tsx     # Tanúsítvány publikus verifikáció
+    │   └── admin/
+    │       ├── AdminPage.tsx      # Admin dashboard (statisztikák)
+    │       ├── AdminCoursesPage.tsx # Kurzusok kezelése (CRUD)
+    │       └── AdminUsersPage.tsx  # Felhasználók kezelése
+    │
+    └── test/
+        ├── setup.ts              # Teszt setup (@testing-library/jest-dom)
+        ├── App.test.tsx          # Routing tesztek
+        ├── components/           # Komponens tesztek
+        ├── pages/                # Oldal tesztek
+        └── lib/                  # Lib modul tesztek
 ```
 
 ---
 
-## 3. Astro konfiguráció
+## 3. Vite konfiguráció
 
-```javascript
-// astro.config.mjs
+```typescript
+// vite.config.ts
 export default defineConfig({
-  output: 'static',           // Statikus HTML generálás (nincs SSR)
-  server: { port: 4321 },     // Dev szerver portja
-  build: { format: 'directory' }, // /courses/index.html (nem /courses.html)
+  plugins: [react()],
+  server: {
+    port: 4321,
+    proxy: { '/api': 'http://localhost:8000' },
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/test/setup.ts',
+  },
 });
 ```
 
 ### Fontos tudnivalók
 
-- **Nincs SSR** — az Astro statikus fájlokat generál build időben
-- **Dinamikus útvonalak** (`[slug].astro`, `[id].astro`) a `getStaticPaths()` függvényt használják. Jelenleg placeholder értékkel térnek vissza, mert az adatok kliens oldalon töltődnek be
-- **TypeScript** — strict mód engedélyezve, de a legtöbb kliens oldali kód vanilla JS
+- **SPA (Single Page Application)** — a React Router kezeli az útvonalakat kliens oldalon
+- **TypeScript strict mód** — minden fájl TypeScript-ben van írva (.tsx/.ts)
+- **API proxy** — fejlesztés közben a Vite automatikusan a backend-re irányítja az `/api` kéréseket
+- **Vitest beépítve** — a teszt konfiguráció a vite.config.ts-ben van
 
 ---
 
-## 4. Layout és komponensek
+## 4. Útvonalak (React Router)
 
-### Layout (`Layout.astro`)
+Az útvonalak az `App.tsx` fájlban vannak definiálva:
 
-Minden oldal a `Layout` komponenst használja, ami biztosítja:
+```tsx
+<Routes>
+  <Route path="/" element={<HomePage />} />
+  <Route path="/login" element={<LoginPage />} />
+  <Route path="/courses" element={<CoursesPage />} />
+  <Route path="/courses/:id" element={<CourseDetailPage />} />
+  <Route path="/dashboard" element={<DashboardPage />} />
+  <Route path="/admin" element={<AdminPage />} />
+  <Route path="/admin/courses" element={<AdminCoursesPage />} />
+  <Route path="/admin/users" element={<AdminUsersPage />} />
+  <Route path="/verify/:id" element={<VerifyPage />} />
+</Routes>
+```
 
-- **HTML head** — charset, viewport, favicon, `<title>`
+Minden útvonal a `Layout` komponensbe van csomagolva, ami a header-t és footer-t biztosítja.
+
+---
+
+## 5. Layout és komponensek
+
+### Layout (`Layout.tsx`)
+
+A Layout komponens minden oldalon megjelenik:
+
 - **Header** — logo, navigáció (Kurzusok, Dashboard), auth állapot
 - **Footer** — copyright
 - **Hamburger menü** — mobil nézetben
 
-Az auth navigáció dinamikus: a layout `<script>` blokkja lekérdezi a `/api/auth/me` végpontot cookie-alapú hitelesítéssel (`credentials: 'same-origin'`), és a válasz alapján jeleníti meg a navigációs elemeket. Admin felhasználóknál megjelenik az „Admin” link. Ha a felhasználó nincs bejelentkezve, a „Belépés” gomb jelenik meg.
+Az auth navigáció dinamikus: a komponens `useEffect`-tel lekérdezi a `/api/auth/me` végpontot cookie-alapú hitelesítéssel, és a válasz alapján jeleníti meg a navigációs elemeket. Admin felhasználóknál megjelenik az „Admin" link. Ha a felhasználó nincs bejelentkezve, a „Belépés" gomb jelenik meg.
 
-```astro
-<!-- Használat egy oldalban -->
----
-import Layout from '../layouts/Layout.astro';
----
-<Layout title="Oldal neve">
-  <div class="container page">
-    <!-- tartalom -->
-  </div>
+```tsx
+// Használat — automatikus az App.tsx-ben
+<Layout>
+  <Routes>...</Routes>
 </Layout>
 ```
 
@@ -133,142 +182,95 @@ import Layout from '../layouts/Layout.astro';
 
 | Komponens | Props | Használat |
 |-----------|-------|-----------|
-| `CourseCard` | `name`, `description`, `id` | Kurzus kártya a listában |
-| `ProgressBar` | `percent`, `label?` | Haladási sáv százalékkal |
-| `Header` | — | Fejléc navigációval |
-| `Footer` | — | Lábléc |
-
-> **Megjegyzés:** A `Header` és `Footer` komponensek jelenleg közvetlenül a `Layout.astro`-ba vannak beépítve (nem importálva). A különálló `Header.astro` és `Footer.astro` fájlok egyszerűsített változatot tartalmaznak.
+| `CourseCard` | `id: number`, `name: string`, `description: string \| null` | Kurzus kártya a listában |
+| `ProgressBar` | `percent: number`, `label?: string` | Haladási sáv százalékkal |
 
 ---
 
-## 5. Oldalak
+## 6. Oldalak
 
 ### Publikus oldalak
 
 | Oldal | Fájl | Leírás |
 |-------|------|--------|
-| Kezdőoldal | `pages/index.astro` | Hero szekció, gyorsindítási útmutató, „Hogyan működik?" lépések, közösség szekció (Discord, GitHub, Tudásbázis), kurzus előnézet |
-| Kurzuslista | `pages/courses/index.astro` | Összes kurzus kártya nézetben |
-| Kurzus részletek | `pages/courses/[slug].astro` | Modulok, feladatok, beiratkozás gomb, Classroom linkek |
-| Belépés | `pages/login.astro` | GitHub OAuth gomb, cookie-alapú hitelesítés ellenőrzés |
-| Verifikáció | `pages/verify/[id].astro` | Tanúsítvány publikus hitelesítés |
+| Kezdőoldal | `HomePage.tsx` | Hero szekció, gyorsindítási útmutató, „Hogyan működik?" lépések, közösség szekció, kurzus előnézet |
+| Kurzuslista | `CoursesPage.tsx` | Összes kurzus kártya nézetben |
+| Kurzus részletek | `CourseDetailPage.tsx` | Modulok, feladatok, beiratkozás gomb, Classroom linkek |
+| Belépés | `LoginPage.tsx` | GitHub OAuth gomb, cookie-alapú hitelesítés |
+| Verifikáció | `VerifyPage.tsx` | Tanúsítvány publikus hitelesítés |
 
 ### Védett oldalak (bejelentkezés szükséges)
 
 | Oldal | Fájl | Leírás |
 |-------|------|--------|
-| Dashboard | `pages/dashboard.astro` | Beiratkozott kurzusok, haladási sávok, tanúsítvány kezelés, GitHub sync |
-| Admin dashboard | `pages/admin/index.astro` | Statisztikák (felhasználók, kurzusok, beiratkozások, stb.) |
-| Admin felhasználók | `pages/admin/users.astro` | Felhasználók táblázata, szerepkör módosítás |
-| Admin kurzusok | `pages/admin/courses.astro` | Kurzus CRUD, modul/feladat hozzáadás/törlés |
+| Dashboard | `DashboardPage.tsx` | Beiratkozott kurzusok, haladási sávok, tanúsítvány kezelés, GitHub sync |
+| Admin dashboard | `admin/AdminPage.tsx` | Statisztikák (felhasználók, kurzusok, beiratkozások, stb.) |
+| Admin felhasználók | `admin/AdminUsersPage.tsx` | Felhasználók táblázata, szerepkör módosítás |
+| Admin kurzusok | `admin/AdminCoursesPage.tsx` | Kurzus CRUD, modul/feladat hozzáadás/törlés |
 
 ---
 
-## 6. Kliens oldali JavaScript
+## 7. TypeScript típusok
 
-Mivel az Astro statikus HTML-t generál, az interaktív funkciók kliens oldali JavaScript-tel működnek. A fő JS modulok a `src/lib/` mappában vannak.
+A `lib/types.ts` fájl tartalmazza az összes interfészt:
 
-### `api.js` — API wrapper
+```typescript
+interface User { id: number; username: string; role: string; avatar_url?: string; }
+interface Course { id: number; name: string; description: string | null; modules: Module[]; }
+interface Module { id: number; name: string; order: number; exercises: Exercise[]; }
+interface Exercise { id: number; name: string; order: number; required: boolean; classroom_url?: string; }
+interface DashboardCourse { course_id: number; course_name: string; progress_percent: number; ... }
+interface Certificate { id: number; cert_id: string; course_id: number; course_name: string; ... }
+```
+
+---
+
+## 8. API kommunikáció
+
+### `api.ts` — API wrapper
 
 Az `apiFetch()` függvény kezeli az autentikációt cookie-alapon:
 
 1. Cookie-kat küldi a kéréssel (`credentials: 'same-origin'`)
 2. Ha a válasz `401`, megpróbálja frissíteni a tokent a `/api/auth/refresh` végponton
 3. Ha a refresh is sikertelen, átirányít a `/login` oldalra
-4. Exportálja az `escapeHtml()` segédfüggvényt XSS védelemhez
 
-```javascript
-import { apiFetch } from '../lib/api.js';
+```typescript
+import { apiFetch } from '../lib/api';
 
 const res = await apiFetch('/api/me/dashboard');
 const data = await res.json();
 ```
 
-### `dashboard.js` — Dashboard logika
+### Fejlesztés közben
 
-A dashboard oldal teljes kliens oldali logikája:
-
-- Betölti a haladást (`/api/me/dashboard`) és a tanúsítványokat (`/api/me/certificates`)
-- Megjeleníti a kurzusokat haladási sávokkal
-- **Tanúsítvány igénylés** — ha a kurzus 100%-os, megjelenik az „Igénylés" gomb (`POST /api/me/courses/{id}/certificate`)
-- **PDF letöltés** — meglévő tanúsítványhoz Blob-ként letölti a PDF-et (`GET /api/me/certificates/{id}/pdf`)
-- **GitHub szinkronizálás** — a „🔄 Haladás szinkronizálása GitHub-ból" gomb hívja a `POST /api/me/sync-progress` végpontot
-
-### `course-detail.js` — Kurzus részletek
-
-- Az URL-ből kiszedi a kurzus ID-t (slug)
-- Betölti a kurzus adatait (`GET /api/courses/{id}`)
-- Megjeleníti a modulokat és feladatokat, GitHub Classroom linkekkel (📎 ikon)
-- Beiratkozás gomb kezelése (`POST /api/courses/{id}/enroll`)
+A Vite dev szervere automatikusan proxy-zza a `/api` kéréseket a backend-re (port 8000). Docker Compose-zal futtatott környezetben az nginx a 80-as porton:
+- `/api/*` → backend (FastAPI, port 8000)
+- Minden más → frontend (Vite build)
 
 ---
 
-## 7. Autentikáció
+## 9. Autentikáció
 
 ### Cookie-alapú hitelesítés
 
 A frontend httpOnly cookie-kat használ az autentikációhoz. A tokenek közvetlenül nem hozzáférhetőek JavaScript-ből — a böngésző automatikusan küldi őket minden kéréssel.
 
-```javascript
+```typescript
 // API hívás hitelesítéssel
 const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
 
-// Kijelentkezés — a backend törli a cookie-kat
+// Kijelentkezés
 await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
 ```
 
-### Auth flow
-
-1. Felhasználó kattint a „Belépés GitHub-bal" gombra → `/api/auth/login`
-2. Backend beállítja az `oauth_state` cookie-t és átirányít a GitHub OAuth oldalra
-3. GitHub visszairányít → `/api/auth/callback?code=xxx&state=yyy`
-4. Backend ellenőrzi a `state` paramétert (CSRF védelem), JWT-t generál, beállítja az `access_token` és `refresh_token` cookie-kat
-5. Redirect → `/dashboard`
-
 ### Védett oldalak
 
-A védett oldalak (dashboard, admin) a `/api/auth/me` végponton ellenőrzik a hitelesítést:
-
-```javascript
-const meRes = await fetch('/api/auth/me', { credentials: 'same-origin' });
-if (!meRes.ok) {
-  window.location.href = '/login';
-}
-```
-
-Az admin oldalak ezen felül a szerepkört is ellenőrzik:
-
-```javascript
-const me = await meRes.json();
-if (me.role !== 'admin') {
-  container.innerHTML = '<p>Nincs jogosultságod.</p>';
-  return;
-}
-```
-
-### XSS védelem
-
-Minden felhasználói adatot `escapeHtml()` függvénnyel kell kimenetre írni a template literálokban:
-
-```javascript
-function escapeHtml(str) {
-  if (str == null) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-// Használat
-container.innerHTML = `<h3>${escapeHtml(course.name)}</h3>`;
-```
+A védett oldalak (dashboard, admin) a `/api/auth/me` végponton ellenőrzik a hitelesítést, és szükség esetén átirányítanak a `/login` oldalra.
 
 ---
 
-## 8. Stílusok (CSS)
+## 10. Stílusok (CSS)
 
 ### CSS változók (`global.css`)
 
@@ -278,66 +280,86 @@ container.innerHTML = `<h3>${escapeHtml(course.name)}</h3>`;
   --color-accent: #e74c3c;      /* Piros — elsődleges gombok, kiemelés */
   --color-bg: #f8f9fa;          /* Világosszürke háttér */
   --color-text: #333;           /* Szöveges tartalom */
-  --color-text-light: #7f8c8d;  /* Másodlagos szöveg */
-  --color-border: #dee2e6;      /* Keretek, elválasztók */
-  --color-white: #fff;          /* Fehér */
-  --color-success: #27ae60;     /* Zöld — haladási sáv, sikeres műveletek */
+  --color-success: #27ae60;     /* Zöld — haladási sáv */
   --max-width: 1200px;          /* Tartalom maximális szélessége */
 }
 ```
 
-### Globális osztályok
-
-| Osztály | Leírás |
-|---------|--------|
-| `.container` | Tartalom centrálása `max-width: 1200px`-szel |
-| `.btn` | Gomb alap stílus (padding, border-radius, transition) |
-| `.btn-primary` | Piros gomb (accent szín) |
-| `.btn-secondary` | Sötétkék gomb (primary szín) |
-| `.card` | Fehér kártya árnyékkal |
-| `.card-grid` | Reszponzív grid kártyákhoz (`auto-fill, minmax(300px, 1fr)`) |
-| `.progress-bar` | Haladási sáv konténer |
-| `.progress-bar-fill` | Haladási sáv kitöltés (zöld, animált szélesség) |
-
 ### Stílus konvenciók
 
-- **Scoped stílusok** — az oldalak és komponensek `<style>` blokkjai automatikusan scope-oltak (Astro alapértelmezés)
-- **Globális stílusok** — a `global.css`-t a `Layout.astro` importálja
+- **Globális stílusok** — a `global.css`-t a `main.tsx` importálja
 - **Nincs CSS framework** — vanilla CSS, CSS változókkal
 - **Reszponzív** — `@media (max-width: 767px)` törésponttal
 
 ---
 
-## 9. Admin panel
+## 11. Tesztelés
+
+A frontend Vitest + React Testing Library-t használ.
+
+### Tesztek futtatása
+
+```bash
+npm test          # Vitest egyszer futtatás
+npx vitest        # Watch módban
+npx vitest --ui   # Böngészőben interaktív felület
+```
+
+### Teszt fájlok
+
+A tesztek a `src/test/` mappában vannak:
+
+| Fájl | Tesztel |
+|------|---------|
+| `App.test.tsx` | Útvonalak (routing) |
+| `components/Layout.test.tsx` | Header, navigáció, auth állapot |
+| `components/CourseCard.test.tsx` | Kurzus kártya megjelenítés |
+| `components/ProgressBar.test.tsx` | Haladási sáv megjelenítés |
+| `pages/HomePage.test.tsx` | Szekciók, kurzusok betöltése |
+| `pages/LoginPage.test.tsx` | Login gomb |
+| `pages/CoursesPage.test.tsx` | Kurzuslista betöltés |
+| `pages/DashboardPage.test.tsx` | Dashboard megjelenítés |
+| `pages/VerifyPage.test.tsx` | Tanúsítvány verifikáció |
+| `lib/api.test.ts` | API wrapper, token refresh |
+| `lib/config.test.ts` | Oldal konfiguráció |
+
+### Teszt minta
+
+```tsx
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { describe, it, expect, vi } from 'vitest';
+
+describe('MyComponent', () => {
+  it('renders correctly', () => {
+    render(
+      <MemoryRouter>
+        <MyComponent />
+      </MemoryRouter>
+    );
+    expect(screen.getByText('Expected text')).toBeInTheDocument();
+  });
+});
+```
+
+---
+
+## 12. Admin panel
 
 Az admin panel 3 oldalból áll, mindegyik kliens oldalon ellenőrzi az admin szerepkört.
 
-### Admin navigáció
-
-Minden admin oldal tartalmaz egy belső navigációs sávot:
-
-```html
-<div class="admin-nav">
-  <a href="/admin" class="btn btn-primary">Áttekintés</a>
-  <a href="/admin/users" class="btn btn-secondary">Felhasználók</a>
-  <a href="/admin/courses" class="btn btn-secondary">Kurzusok</a>
-</div>
-```
-
-### Admin — Áttekintés (`admin/index.astro`)
+### Admin — Áttekintés (`AdminPage.tsx`)
 
 - Statisztikák: felhasználók, kurzusok, beiratkozások, tanúsítványok, feladatok
 - API: `GET /api/admin/stats`
 
-### Admin — Felhasználók (`admin/users.astro`)
+### Admin — Felhasználók (`AdminUsersPage.tsx`)
 
 - Táblázat: avatar, felhasználónév, email, szerepkör, regisztráció, utolsó belépés
-- Szerepkör módosítás: `<select>` dropdown → „Mentés" gomb (csak megváltozott soroknál)
+- Szerepkör módosítás: `<select>` dropdown → „Mentés" gomb
 - API: `GET /api/admin/users`, `PATCH /api/admin/users/{id}/role`
 
-### Admin — Kurzusok (`admin/courses.astro`)
-
-Legösszetettebb oldal — kurzusok, modulok és feladatok teljes CRUD kezelése:
+### Admin — Kurzusok (`AdminCoursesPage.tsx`)
 
 - **Kurzus létrehozása** — űrlap (név, leírás) → `POST /api/courses`
 - **Kurzus törlése** — megerősítés ablak → `DELETE /api/admin/courses/{id}`
@@ -349,124 +371,57 @@ Legösszetettebb oldal — kurzusok, modulok és feladatok teljes CRUD kezelése
 
 ---
 
-## 10. Új oldal hozzáadása (lépésről lépésre)
+## 13. Új oldal hozzáadása (lépésről lépésre)
 
-### Egyszerű publikus oldal
+### Új oldal (komponens)
 
-1. Hozz létre egy új `.astro` fájlt a `src/pages/` mappában:
+1. Hozz létre egy új `.tsx` fájlt a `src/pages/` mappában:
 
-```astro
----
-import Layout from '../layouts/Layout.astro';
----
-<Layout title="Új oldal">
-  <div class="container page">
-    <h1>Új oldal</h1>
-    <p>Tartalom...</p>
-  </div>
-</Layout>
-
-<style>
-  .page { padding: 40px 0; }
-</style>
-```
-
-2. Az oldal automatikusan elérhető az URL-en (pl. `src/pages/about.astro` → `/about`)
-
-### Dinamikus oldal (pl. `/items/[id]`)
-
-1. Hozz létre `src/pages/items/[id].astro`:
-
-```astro
----
-import Layout from '../../layouts/Layout.astro';
-export function getStaticPaths() {
-  return [{ params: { id: 'placeholder' } }];
-}
----
-<Layout title="Item">
-  <div class="container page" id="content">
-    <p>Betöltés...</p>
-  </div>
-</Layout>
-
-<script>
-  const id = window.location.pathname.split('/').filter(Boolean).pop();
-  // Fetch és megjelenítés...
-</script>
-```
-
-### Védett oldal (bejelentkezés szükséges)
-
-Add hozzá az auth ellenőrzést a `<script>` blokkban:
-
-```javascript
-const token = localStorage.getItem('access_token');
-if (!token) {
-  window.location.href = '/login';
-}
-const headers = { Authorization: `Bearer ${token}` };
-```
-
----
-
-## 11. Backend API kommunikáció
-
-### Fejlesztés közben
-
-A Docker Compose-zal futtatott környezetben az nginx a 80-as porton:
-- `/api/*` → backend (FastAPI, port 8000)
-- Minden más → frontend (Astro build)
-
-Az API hívások relatív URL-eket használnak (`/api/courses`, nem `http://localhost:8000/api/courses`), így mind fejlesztésben, mind produkcióban működnek.
-
-### Adatok betöltése
-
-A statikus Astro oldalak kliens oldali `fetch()`-csel töltik be az adatokat:
-
-```javascript
-// Publikus endpoint (nem kell token)
-const res = await fetch('/api/courses');
-const body = await res.json();
-const courses = body.data;
-
-// Védett endpoint (token szükséges)
-const token = localStorage.getItem('access_token');
-const res = await fetch('/api/me/dashboard', {
-  headers: { Authorization: `Bearer ${token}` }
-});
-```
-
-### Hibakezelés minta
-
-```javascript
-try {
-  const res = await fetch('/api/courses');
-  if (!res.ok) {
-    container.innerHTML = '<p>Hiba történt.</p>';
-    return;
-  }
-  const data = await res.json();
-  // ...megjelenítés
-} catch {
-  container.innerHTML = '<p>A szolgáltatás nem elérhető.</p>';
+```tsx
+export default function AboutPage() {
+  return (
+    <div className="container page">
+      <h1>Rólunk</h1>
+      <p>Tartalom...</p>
+    </div>
+  );
 }
 ```
 
+2. Add hozzá az útvonalat az `App.tsx`-ben:
+
+```tsx
+import AboutPage from './pages/AboutPage';
+
+<Route path="/about" element={<AboutPage />} />
+```
+
+### Védett oldal
+
+A védett oldalak a `useEffect`-ben ellenőrzik a hitelesítést:
+
+```tsx
+useEffect(() => {
+  fetch('/api/auth/me', { credentials: 'same-origin' })
+    .then((r) => { if (!r.ok) window.location.href = '/login'; })
+    .catch(() => { window.location.href = '/login'; });
+}, []);
+```
+
 ---
 
-## 12. Docker integráció
+## 14. Docker integráció
 
-A frontend a Docker Compose-ban build-only konténerként fut:
+A frontend a Docker Compose-ban build konténerként fut:
 
 ```yaml
 frontend:
   build: ./frontend
   volumes:
-    - frontend_dist:/app/dist   # Build kimenet megosztva nginx-szel
+    - frontend_dist:/usr/share/nginx/html
 ```
 
-A `frontend/Dockerfile` telepíti a csomagokat és futtatja az `astro build`-et. Az nginx a generált fájlokat szolgálja ki a megosztott volume-ból.
+A `frontend/Dockerfile` telepíti a csomagokat és futtatja a `npm run build`-et. Az nginx a generált fájlokat szolgálja ki a megosztott volume-ból, SPA fallback-kel (`try_files $uri $uri/ /index.html`).
 
 ### Újraépítés fejlesztés közben
 
@@ -480,30 +435,34 @@ make up
 
 ---
 
-## 13. Hibaelhárítás
-
-### „Kurzusok nem elérhetőek" az oldalon
-
-Ez azt jelenti, hogy a frontend nem éri el a backend API-t. Ellenőrizd:
-
-```bash
-# Fut-e a backend?
-docker compose ps
-
-# Elérhető-e az API?
-curl http://localhost:8000/health
-
-# Nginx konfig rendben van?
-docker compose logs nginx
-```
+## 15. Hibaelhárítás
 
 ### Hot reload nem működik
 
-Az Astro dev szerver (`npm run dev`) esetén:
 - Ellenőrizd, hogy a helyes mappában vagy-e: `cd frontend`
-- Port ütközés: próbáld `npx astro dev --port 4322`
+- Port ütközés: `npx vite --port 4322`
 
-### Styles nem töltődnek be
+### Stílusok nem töltődnek be
 
-- Ellenőrizd, hogy a `Layout.astro` importálja a `global.css`-t: `import '../styles/global.css';`
+- Ellenőrizd, hogy a `main.tsx` importálja a `global.css`-t
 - Docker build után: `docker compose up -d --build frontend`
+
+### TypeScript hibák
+
+```bash
+npx tsc --noEmit    # Típushibák listázása
+```
+
+### ESLint / Prettier hibák
+
+```bash
+npm run lint          # ESLint hibák listázása
+npm run lint:fix      # Automatikus javítás
+npm run format        # Prettier formázás alkalmazása
+```
+
+### API hívások nem működnek
+
+- Lokális fejlesztésnél a Vite proxy-t használ (`vite.config.ts` → `server.proxy`)
+- Docker-ben az nginx proxy-zza a `/api` kéréseket
+- Ellenőrizd: `curl http://localhost:8000/health`

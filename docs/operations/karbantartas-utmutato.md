@@ -91,9 +91,13 @@ pytest
 
 | Szint | Eszköz | Parancs | Elvárt |
 |-------|--------|---------|--------|
-| Lint | ruff | `ruff check backend/` | 0 hiba |
-| Formázás | ruff | `ruff format --check backend/` | 0 eltérés |
-| Unit tesztek | pytest | `pytest` | 100% pass |
+| Backend lint | ruff | `ruff check backend/` | 0 hiba |
+| Backend formázás | ruff | `ruff format --check backend/` | 0 eltérés |
+| Frontend lint | ESLint | `cd frontend && npx eslint .` | 0 hiba |
+| Frontend formázás | Prettier | `cd frontend && npx prettier --check 'src/**/*.{ts,tsx,css}'` | 0 eltérés |
+| Frontend típusok | TypeScript | `cd frontend && npx tsc --noEmit` | 0 hiba |
+| Backend tesztek | pytest | `pytest` | 100% pass |
+| Frontend tesztek | Vitest | `cd frontend && npx vitest run` | 100% pass |
 | Lefedettség | pytest-cov | `pytest --cov=app --cov-report=term` | ≥80% |
 | Biztonsági audit | pip-audit | `pip-audit` | 0 vulnerability |
 
@@ -107,7 +111,7 @@ pytest
 ### CI pipeline (automatikus)
 
 ```
-Push/PR → Lint (ruff check + format) → Tesztek (pytest) → [main branch] → Deploy
+Push/PR → Backend lint (ruff) + Frontend lint (ESLint + Prettier + tsc) → Backend test (pytest) + Frontend test (Vitest) → [main branch] → Deploy
 ```
 
 ## 4. Telepítés és üzemeltetés
@@ -116,8 +120,8 @@ Push/PR → Lint (ruff check + format) → Tesztek (pytest) → [main branch] �
 
 Mielőtt élesbe megy egy új verzió:
 
-- [ ] Minden teszt zöld (`pytest`)
-- [ ] Lint hibamentes (`ruff check` + `ruff format --check`)
+- [ ] Minden teszt zöld (`pytest` + `vitest run`)
+- [ ] Lint hibamentes (`make lint` — ruff + ESLint + Prettier + tsc)
 - [ ] Környezeti változók beállítva (`.env`)
 - [ ] `ENVIRONMENT=production` beállítva
 - [ ] `ALLOWED_ORIGINS` tartalmazza az éles domain-t

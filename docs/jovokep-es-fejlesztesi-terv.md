@@ -89,7 +89,7 @@ Egy új kurzus indításához a GitHub Classroom-ban és az OpenSchool admin pan
 |-------|---------|---------|
 | Kezdőoldal | `/` | ✅ Kész |
 | Kurzuslista | `/courses` | ✅ Kész |
-| Kurzus részletek | `/courses/[slug]` | ✅ Kész |
+| Kurzus részletek | `/courses/:id` | ✅ Kész |
 | Bejelentkezés | `/login` | ✅ Kész |
 | Dashboard | `/dashboard` | ✅ Kész |
 | Tanúsítvány hitelesítés | `/verify/[id]` | ✅ Kész |
@@ -125,7 +125,7 @@ Egy új kurzus indításához a GitHub Classroom-ban és az OpenSchool admin pan
 | PR sablon | ✅ |
 | README.md | ✅ |
 | Makefile | ✅ |
-| pre-commit + ruff | ✅ |
+| pre-commit + ruff + ESLint + Prettier | ✅ |
 | Architektúra dokumentáció | ✅ |
 | Telepítési útmutató | ✅ |
 | Fejlesztői útmutató (közös) | ✅ |
@@ -153,7 +153,8 @@ Egy új kurzus indításához a GitHub Classroom-ban és az OpenSchool admin pan
 | Admin tesztek (11 teszt) | ✅ |
 | Health check teszt | ✅ |
 | Egyéb tesztek | ✅ |
-| **Összesen: 56 teszt** | ✅ Mind zöld |
+| Frontend tesztek (39 teszt — Vitest + React Testing Library) | ✅ |
+| **Összesen: 95 teszt (56 backend + 39 frontend)** | ✅ Mind zöld |
 
 ---
 

@@ -10,7 +10,7 @@ Az OpenSchool egy oktatási platform, ahol a tanulók valódi fejlesztői munkaf
 graph LR
   Browser["Böngésző (Tanuló)"] -->|HTTP| Nginx["nginx :80"]
   Nginx -->|"/api/*, /verify/*"| FastAPI["FastAPI :8000"]
-  Nginx -->|"statikus fájlok"| Astro["Astro build"]
+  Nginx -->|"statikus fájlok"| React["React + Vite build"]
   FastAPI --> PostgreSQL["PostgreSQL :5432"]
   FastAPI -->|"OAuth, CI check"| GitHub["GitHub API"]
 ```
@@ -19,7 +19,7 @@ graph LR
 
 1. Minden forgalom az **nginx**-en keresztül érkezik a 80-as porton (vagy 443 SSL-lel)
 2. Az `/api/*` és `/verify/*` kérések a **FastAPI backend**-re proxyződnak
-3. Minden más kérés az Astro által épített **statikus fájlokat** szolgálja ki
+3. Minden más kérés a React + Vite által épített **statikus fájlokat** szolgálja ki (SPA fallback-kel)
 4. A backend a **PostgreSQL**-lel kommunikál az adattároláshoz
 5. A backend a **GitHub API**-t hívja az OAuth-hoz és a CI állapot ellenőrzéshez
 
@@ -118,7 +118,7 @@ erDiagram
 
 ---
 
-## Frontend (Astro)
+## Frontend (React + TypeScript + Vite)
 
 ### Oldalak
 
@@ -126,17 +126,17 @@ erDiagram
 |---------|------------|--------|
 | `/` | Nem | Kezdőoldal — bemutató, hogyan működik, kurzus előnézet |
 | `/courses` | Nem | Kurzuslista |
-| `/courses/[slug]` | Nem | Kurzus részletei modulokkal, gyakorlatokkal, beiratkozás gomb |
-| `/login` | Nem | GitHub OAuth bejelentkezés, token kezelés |
+| `/courses/:id` | Nem | Kurzus részletei modulokkal, gyakorlatokkal, beiratkozás gomb |
+| `/login` | Nem | GitHub OAuth bejelentkezés, cookie-alapú hitelesítés |
 | `/dashboard` | Igen | Beiratkozott kurzusok, haladási sávok, tanúsítványok |
 | `/verify/[id]` | Nem | Nyilvános tanúsítvány hitelesítés |
 | `/admin` | Igen (admin) | Admin dashboard — statisztikák |
 | `/admin/users` | Igen (admin) | Felhasználók kezelése, szerepkörök módosítása |
 | `/admin/courses` | Igen (admin) | Kurzusok, modulok, gyakorlatok kezelése |
 
-### Statikus kimenet
+### SPA kimenet
 
-Az Astro statikus HTML/CSS/JS fájlokat generál. A build kimenetet az nginx szolgálja ki. A böngészőből érkező API hívások a `/api/*` útvonalra mennek, amit az nginx a backend-re proxyzi.
+A Vite egyetlen HTML fájlt és optimalizált JS/CSS bundle-t generál. A build kimenetet az nginx szolgálja ki SPA fallback-kel (`try_files $uri $uri/ /index.html`). A böngészőből érkező API hívások a `/api/*` útvonalra mennek, amit az nginx a backend-re proxyzi.
 
 ---
 
@@ -149,7 +149,7 @@ Az Astro statikus HTML/CSS/JS fájlokat generál. A build kimenetet az nginx szo
 | `backend` | Python 3.12 slim | FastAPI alkalmazás uvicorn-nal |
 | `db` | PostgreSQL 16 | Adattárolás |
 | `nginx` | nginx:alpine | Reverse proxy + statikus fájl kiszolgálás |
-| `frontend` | Node 20 (csak build) | Astro statikus fájlok buildelése |
+| `frontend` | Node 20 (csak build) | React + Vite build (SPA) |
 
 ### Éles vs. fejlesztői különbségek (`docker-compose.prod.yml`)
 
@@ -165,7 +165,7 @@ Az Astro statikus HTML/CSS/JS fájlokat generál. A build kimenetet az nginx szo
 /api/*      → proxy_pass http://backend:8000
 /verify/*   → proxy_pass http://backend:8000/api/verify/
 /health     → proxy_pass http://backend:8000
-/*          → statikus fájlok (Astro build) SPA fallback-kel
+/*          → statikus fájlok (Vite build) SPA fallback-kel
 ```
 
 ---
@@ -174,9 +174,12 @@ Az Astro statikus HTML/CSS/JS fájlokat generál. A build kimenetet az nginx szo
 
 ```mermaid
 graph LR
-  Push["git push"] --> Lint["ruff lint"]
-  Lint --> Test["pytest"]
-  Test --> Deploy["SSH deploy"]
+  Push["git push"] --> BLint["Backend lint\n(ruff)"]
+  Push --> FLint["Frontend lint\n(ESLint + Prettier + tsc)"]
+  BLint --> BTest["Backend test\n(pytest)"]
+  FLint --> FTest["Frontend test\n(Vitest + build)"]
+  BTest --> Deploy["SSH deploy"]
+  FTest --> Deploy
   Deploy --> Pull["git pull"]
   Pull --> Build["docker compose build"]
   Build --> Migrate["alembic upgrade"]
@@ -187,7 +190,12 @@ graph LR
 
 Mikor fut: push a `main` vagy `develop`-re, PR-ek a `main` vagy `develop`-re
 
-1. Checkout → Python 3.12 beállítás → Függőségek telepítése → pytest futtatás → Discord értesítés
+4 párhuzamos job:
+
+1. **Backend lint** — `ruff check` + `ruff format --check`
+2. **Frontend lint** — ESLint + Prettier format check + `tsc --noEmit`
+3. **Backend test** — Python 3.12 beállítás → pytest futtatás → Discord értesítés
+4. **Frontend test** — Node.js 20 beállítás → Vitest futtatás + `npm run build`
 
 ### CD Pipeline (`.github/workflows/cd.yml`)
 

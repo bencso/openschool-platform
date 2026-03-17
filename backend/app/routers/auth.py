@@ -121,6 +121,7 @@ def auth_callback(
         samesite="lax",
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         secure=is_secure,
+        path="/",
     )
     resp.set_cookie(
         key="refresh_token",
@@ -129,6 +130,7 @@ def auth_callback(
         samesite="lax",
         max_age=7 * 24 * 60 * 60,
         secure=is_secure,
+        path="/",
     )
     resp.delete_cookie(key="oauth_state")
     return resp
@@ -183,6 +185,7 @@ def auth_refresh(request: Request, db: Session = Depends(get_db)):
         samesite="lax",
         max_age=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         secure=is_secure,
+        path="/",
     )
     resp.set_cookie(
         key="refresh_token",
@@ -191,6 +194,7 @@ def auth_refresh(request: Request, db: Session = Depends(get_db)):
         samesite="lax",
         max_age=REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
         secure=is_secure,
+        path="/",
     )
     return resp
 

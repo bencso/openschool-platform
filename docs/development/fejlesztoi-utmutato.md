@@ -5,7 +5,7 @@
 Ez az útmutató a közös fejlesztői környezet felállítását és a megosztott eszközöket írja le. A backend és frontend specifikus részletekért lásd:
 
 - **[Backend fejlesztés](backend-fejlesztes.md)** — Python venv, FastAPI routerek, modellek, szolgáltatások, Ruff, pytest, Alembic migrációk
-- **[Frontend fejlesztés](frontend-fejlesztes.md)** — Astro projekt, oldalak, komponensek, kliens oldali JS, stílusok, admin panel
+- **[Frontend fejlesztés](frontend-fejlesztes.md)** — React + TypeScript projekt, oldalak, komponensek, stílusok, tesztek, admin panel
 
 ## Előfeltételek
 
@@ -148,6 +148,9 @@ make install-hooks
 | `check-merge-conflict` | Megakadályozza merge conflict markerek commitolását |
 | `ruff` | Python linter (hibák javítása automatikusan) |
 | `ruff-format` | Python kódformázó |
+| `frontend-eslint` | TypeScript/React linter (ESLint) |
+| `frontend-prettier` | Frontend kódformázó (Prettier) |
+| `frontend-typecheck` | TypeScript típusellenőrzés |
 
 ### Kézi futtatás
 
@@ -178,7 +181,7 @@ Ctrl+Shift+P → "Extensions: Show Recommended Extensions"
 | **Ruff** | `charliermarsh.ruff` | Python linter és formatter |
 | **Python** | `ms-python.python` | Python támogatás, IntelliSense |
 | **Python Debugger** | `ms-python.debugpy` | Python debugolás |
-| **Astro** | `astro-build.astro-vscode` | Astro szintaxis, IntelliSense |
+| **ESLint** | `dbaeumer.vscode-eslint` | TypeScript/React linter |
 | **EditorConfig** | `editorconfig.editorconfig` | Egységes szerkesztő beállítások |
 | **Docker** | `ms-azuretools.vscode-docker` | Docker fájlok, konténer kezelés |
 | **GitHub Copilot** | `github.copilot` | AI kódkiegészítés |
@@ -189,8 +192,8 @@ Ctrl+Shift+P → "Extensions: Show Recommended Extensions"
 A `.vscode/settings.json` automatikusan konfigurálja:
 
 - **Python interpreter:** `.venv/bin/python`
-- **Mentéskor formázás:** Ruff-fel (Python fájlokra)
-- **Import rendezés:** Ruff-fel automatikusan
+- **Mentéskor formázás:** Ruff-fel (Python), Prettier-rel (TypeScript/React)
+- **Import rendezés:** Ruff-fel automatikusan (Python)
 - **120 karakteres vonalzó:** Látható segédvonal a szerkesztőben
 - **Pytest:** Automatikus teszt felfedezés
 - **Fájlszűrés:** `__pycache__`, `.pytest_cache`, `pgdata` rejtve
@@ -204,14 +207,15 @@ Ezek a témák a backend fejlesztési útmutatóban vannak részletesen leírva:
 | Téma | Referencia |
 |------|-----------|
 | **Ruff** (linter + formázó) | [Backend — 7. Linter és formázó](backend-fejlesztes.md#7-linter-és-formázó-ruff) |
+| **ESLint + Prettier** (frontend) | [Frontend — Linting és formázás](frontend-fejlesztes.md#linting-és-formázás) |
 | **pytest** (tesztelés) | [Backend — 8. Tesztelés](backend-fejlesztes.md#8-tesztelés-pytest) |
 | **Alembic** (migrációk) | [Backend — 9. Adatbázis migrációk](backend-fejlesztes.md#9-adatbázis-migrációk-alembic) |
 
 Gyors parancsok:
 
 ```bash
-make lint       # Ruff ellenőrzés (nem módosít)
-make format     # Ruff formázás (módosít)
+make lint       # Backend (Ruff) + frontend (ESLint, Prettier, tsc) ellenőrzés
+make format     # Backend (Ruff) + frontend (ESLint --fix, Prettier) formázás
 make test       # pytest futtatása
 make migrate    # Alembic migrációk futtatása
 ```
@@ -308,7 +312,7 @@ docker compose down
 | `backend` | 8000 | FastAPI szerver |
 | `db` | 5432 | PostgreSQL 16 |
 | `nginx` | 80 | Reverse proxy + frontend |
-| `frontend` | — | Astro build (nginx-be másolva) |
+| `frontend` | — | React + Vite build (nginx-be másolva) |
 
 ### Hasznos Docker parancsok
 
@@ -381,14 +385,14 @@ openschool-platform/
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── components/        # Astro komponensek
-│   │   ├── layouts/           # Astro layout-ok
-│   │   ├── lib/               # Kliens oldali JS modulok (api, config, dashboard, course-detail)
-│   │   ├── pages/             # Oldalak (routing)
+│   │   ├── components/        # React komponensek (Layout, CourseCard, ProgressBar)
+│   │   ├── lib/               # TypeScript modulok (api, config, types)
+│   │   ├── pages/             # Oldal komponensek (React Router)
 │   │   │   └── admin/         # Admin oldalak (dashboard, users, courses)
-│   │   └── styles/            # CSS stílusok
+│   │   ├── styles/            # CSS stílusok
+│   │   └── test/              # Vitest tesztek
 │   ├── public/                # Statikus fájlok
-│   ├── astro.config.mjs       # Astro konfiguráció
+│   ├── vite.config.ts         # Vite + Vitest konfiguráció
 │   ├── package.json           # Node.js függőségek
 │   └── tsconfig.json          # TypeScript konfig
 │
@@ -441,7 +445,7 @@ alembic revision --autogenerate -m "add user profile fields"
 #    → backend/app/routers/users.py
 
 # 7. Frontend oldal
-#    → frontend/src/pages/profile.astro
+#    → frontend/src/pages/ProfilePage.tsx
 
 # 8. Dokumentáció frissítése
 #    → docstring-ek az új függvényekhez
@@ -489,10 +493,12 @@ chore: update dependencies
 
 ### CI (minden push és PR esetén)
 
-A `.github/workflows/ci.yml` automatikusan:
+A `.github/workflows/ci.yml` automatikusan 4 párhuzamos jobot futtat:
 
-1. **Lint lépés** — `ruff check` és `ruff format --check`
-2. **Teszt lépés** — `pytest -v --tb=short` (csak ha a lint sikeres)
+1. **Backend lint** — `ruff check` + `ruff format --check`
+2. **Frontend lint** — ESLint + Prettier format check + `tsc --noEmit`
+3. **Backend test** — `pytest -v --tb=short`
+4. **Frontend test** — Vitest futtatás + `npm run build`
 
 ### CD (main branch push)
 

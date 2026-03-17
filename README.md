@@ -13,7 +13,8 @@ Nem csak a szoftver nyílt: a tananyag, az eszközök, az értékelés, a platfo
 
 - **Backend:** FastAPI + SQLAlchemy + Alembic
 - **Adatbázis:** PostgreSQL
-- **Frontend:** Astro (statikus oldal generátor)
+- **Frontend:** React 19 + TypeScript + Vite (SPA)
+- **Tesztelés:** pytest (backend), Vitest + React Testing Library (frontend)
 - **Infrastruktúra:** Docker Compose, nginx, GitHub Actions
 
 ## Gyors indítás
@@ -53,7 +54,7 @@ Szívesen fogadjuk a hozzájárulásokat! Olvasd el a [CONTRIBUTING.md](CONTRIBU
 | Dokumentum | Leírás |
 |---|---|
 | [Architektúra](docs/getting-started/architektura.md) | Rendszer felépítés, adatmodell, auth folyamat |
-| [Telepítési útmutató](docs/getting-started/telepitesi-utmutato.md) | Helyi fejlesztés (Docker, Python, Astro) |
+| [Telepítési útmutató](docs/getting-started/telepitesi-utmutato.md) | Helyi fejlesztés (Docker, Python, React) |
 | [Éles telepítés](docs/getting-started/eles-telepites.md) | VPS, SSH, DNS, SSL, CI/CD, hibaelhárítás |
 | [Staging telepítés](docs/getting-started/staging-telepites.md) | Staging környezet beüzemelése |
 | [Környezeti változók](docs/getting-started/kornyezeti-valtozok.md) | Env var referencia, Docker, GitHub Actions secrets |
@@ -64,7 +65,7 @@ Szívesen fogadjuk a hozzájárulásokat! Olvasd el a [CONTRIBUTING.md](CONTRIBU
 |---|---|
 | [Fejlesztői útmutató](docs/development/fejlesztoi-utmutato.md) | Környezet beállítás, VS Code, Docker, CI/CD |
 | [Backend](docs/development/backend-fejlesztes.md) | FastAPI, modellek, Ruff, pytest, Alembic |
-| [Frontend](docs/development/frontend-fejlesztes.md) | Astro oldalak, komponensek, admin panel |
+| [Frontend](docs/development/frontend-fejlesztes.md) | React + TypeScript oldalak, komponensek, admin panel |
 | [Tesztelés](docs/development/tesztelesi-utmutato.md) | Tesztek futtatása, fixture-ök, CI integráció |
 
 ### 📚 Referencia

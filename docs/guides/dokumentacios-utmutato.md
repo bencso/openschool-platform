@@ -101,28 +101,28 @@ def get_course_progress(db: Session, user_id: int, course_id: int) -> float:
 
 ## 3. Frontend kód dokumentálása
 
-### Astro komponensek
+### React komponensek
 
-Az Astro komponensek fejlécében a frontmatter (`---`) részben kommentezd a props-okat:
+A React komponensek TypeScript-ben vannak írva. A props-okat TypeScript interfészekkel dokumentáld:
 
-```astro
----
-// ProgressBar.astro
+```tsx
+// ProgressBar.tsx
 // Haladási sáv megjelenítése százalékos értékkel.
-// Props:
-//   percentage (number) — 0-100 közötti érték
-//   label (string) — opcionális felirat a sáv felett
 
-const { percentage, label } = Astro.props;
----
+interface ProgressBarProps {
+  percent: number;   // 0-100 közötti érték
+  label?: string;    // opcionális felirat a sáv felett
+}
+
+export default function ProgressBar({ percent, label }: ProgressBarProps) {
 ```
 
-### JavaScript modulok
+### TypeScript modulok
 
-A `src/lib/` mappában lévő JS fájlok fejlécébe írj egy egysoros leírást:
+A `src/lib/` mappában lévő TS fájlok fejlécébe írj egy egysoros leírást:
 
-```javascript
-// api.js — Közös API hívások a backendhez (fetch wrapper, cookie-alapú auth, XSS védelem)
+```typescript
+// api.ts — Közös API hívások a backendhez (fetch wrapper, cookie-alapú auth)
 ```
 
 Összetett függvények felett használj JSDoc-ot:
@@ -187,7 +187,7 @@ Amikor új végpontot adsz hozzá, frissítsd az [API referenciát](../reference
 docs/
 ├── getting-started/
 │   ├── architektura.md             # Rendszer architektúra, adatmodell
-│   ├── telepitesi-utmutato.md      # Helyi fejlesztés (Docker, Python, Astro)
+│   ├── telepitesi-utmutato.md      # Helyi fejlesztés (Docker, Python, React)
 │   ├── eles-telepites.md           # Éles telepítés (VPS, SSH, DNS, SSL, CI/CD)
 │   ├── staging-telepites.md        # Staging környezet beüzemelése
 │   └── kornyezeti-valtozok.md      # Környezeti változók referencia
@@ -388,5 +388,5 @@ Mentsd el ezt a listát, és futtasd végig minden PR előtt:
 > **Kapcsolódó dokumentáció:**
 > - [Fejlesztői útmutató](../development/fejlesztoi-utmutato.md) — Közös fejlesztői környezet, CI/CD
 > - [Backend fejlesztés](../development/backend-fejlesztes.md) — Python/FastAPI specifikus fejlesztés
-> - [Frontend fejlesztés](../development/frontend-fejlesztes.md) — Astro/JS specifikus fejlesztés
+> - [Frontend fejlesztés](../development/frontend-fejlesztes.md) — React/TypeScript specifikus fejlesztés
 > - [Hozzájárulás](../../CONTRIBUTING.md) — PR folyamat, kódstílus

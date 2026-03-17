@@ -3,7 +3,7 @@
     "charliermarsh.ruff",
     "ms-python.python",
     "ms-python.debugpy",
-    "astro-build.astro-vscode",
+    "dbaeumer.vscode-eslint",
     "editorconfig.editorconfig",
     "ms-azuretools.vscode-docker",
     "github.copilot",

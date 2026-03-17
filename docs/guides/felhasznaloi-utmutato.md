@@ -149,6 +149,7 @@ A fejléc (header) minden oldalon megjelenik:
 | **Dashboard** | `/dashboard` oldalra navigál |
 | **Admin** | `/admin` oldalra navigál (csak admin felhasználóknak jelenik meg) |
 | **Profilom** | `/dashboard` oldalra navigál (bejelentkezett felhasználóknak) |
+| **Kilépés** (gomb) | Kijelentkezés — cookie-k törlése, főoldalra irányítás (bejelentkezett felhasználóknak) |
 | **Belépés** (piros gomb) | `/login` oldalra navigál (nem bejelentkezett felhasználóknak) |
 | **☰** (hamburger ikon) | Mobil nézetben a navigáció megnyitása/bezárása |
 

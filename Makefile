@@ -14,9 +14,11 @@ migrate:
 
 lint:
 	cd backend && ruff check . && ruff format --check .
+	cd frontend && npx eslint . && npx prettier --check 'src/**/*.{ts,tsx,css}' && npx tsc --noEmit
 
 format:
 	cd backend && ruff check --fix . && ruff format .
+	cd frontend && npx eslint --fix . && npx prettier --write 'src/**/*.{ts,tsx,css}'
 
 install-hooks:
 	pre-commit install

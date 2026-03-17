@@ -59,7 +59,7 @@ docker compose logs -f backend
 | nginx       | 80   | Reverse proxy (belépési pont)|
 | backend     | 8000 | FastAPI API (belső)          |
 | db          | 5432 | PostgreSQL 16                |
-| frontend    | —    | Astro build (statikus fájlok)|
+| frontend    | —    | React + Vite build (SPA)     |
 
 **Hasznos parancsok:**
 
@@ -107,8 +107,9 @@ Frontend fejlesztéshez:
 ```bash
 cd frontend
 npm install
-npm run dev    # Astro dev szerver: http://localhost:4321
-npm run build  # Statikus fájlok buildelése
+npm run dev    # Vite dev szerver: http://localhost:4321
+npm run build  # TypeScript ellenőrzés + Vite build
+npm test       # Frontend tesztek futtatása (Vitest)
 ```
 
 ---

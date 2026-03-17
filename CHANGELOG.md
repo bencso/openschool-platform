@@ -2,6 +2,9 @@
 
 ### 🚀 Features
 
+- Migrate frontend from Astro to React 19 + TypeScript + Vite
+- Add frontend test suite (Vitest + React Testing Library, 39 tests)
+- Add frontend CI jobs (lint + test) to GitHub Actions workflows
 - Add Module 3 - courses, progress tracking, and dashboard
 - Add Module 4 - certificate system
 - Add Module 5 - frontend with Astro
