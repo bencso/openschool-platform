@@ -10,10 +10,10 @@ from sqlalchemy.orm import sessionmaker
 from app.database import Base, get_db
 from app.main import app
 from app.models.certificate import Certificate
-from app.models.course import Course, Module, Exercise, Enrollment
-from app.models.promotion import PromotionLog, PromotionRule, PromotionRuleRequirement
+from app.models.course import Course
+from app.models.promotion import PromotionRule, PromotionRuleRequirement
 from app.models.user import User, UserRole
-from app.services.discord_bot import sync_discord_role, lookup_discord_member, _get_role_map
+from app.services.discord_bot import _get_role_map, sync_discord_role
 
 SQLALCHEMY_TEST_URL = "sqlite:///./test_discord_sync.db"
 engine = create_engine(SQLALCHEMY_TEST_URL, connect_args={"check_same_thread": False})

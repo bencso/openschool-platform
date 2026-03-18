@@ -5,10 +5,9 @@ import pytest
 from app.auth.jwt import create_access_token
 from app.models.certificate import Certificate
 from app.models.course import Course
-from app.models.promotion import PromotionLog, PromotionRule, PromotionRuleRequirement
+from app.models.promotion import PromotionRule, PromotionRuleRequirement
 from app.models.user import User, UserRole
 from app.services.promotion import check_and_promote
-
 
 # --- Fixtures ---
 

@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 import httpx
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import RedirectResponse
+from pydantic import BaseModel
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.orm import Session
@@ -11,7 +12,7 @@ from app.auth.dependencies import get_current_user
 from app.auth.jwt import ACCESS_TOKEN_EXPIRE_MINUTES, create_access_token, create_refresh_token
 from app.config import settings
 from app.database import get_db
-from app.models.user import User, UserRole
+from app.models.user import User
 from app.services.discord_bot import lookup_discord_member, sync_discord_role
 from app.services.github import invite_user_to_org
 
@@ -149,9 +150,6 @@ def auth_me(current_user: User = Depends(get_current_user)):
         "role": current_user.role.value,
         "discord_id": current_user.discord_id,
     }
-
-
-from pydantic import BaseModel
 
 
 class ProfileUpdate(BaseModel):

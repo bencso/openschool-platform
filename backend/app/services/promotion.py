@@ -24,10 +24,9 @@ def check_and_promote(db: Session, user: User) -> PromotionLog | None:
         return None
 
     # Gather courses the user already has certificates for.
-    user_cert_course_ids = set(
-        row[0]
-        for row in db.query(Certificate.course_id).filter(Certificate.user_id == user.id).all()
-    )
+    user_cert_course_ids = {
+        row[0] for row in db.query(Certificate.course_id).filter(Certificate.user_id == user.id).all()
+    }
 
     for rule in rules:
         # Skip if the user already has this role or higher.
@@ -36,20 +35,18 @@ def check_and_promote(db: Session, user: User) -> PromotionLog | None:
 
         # Skip if user was already promoted by this exact rule.
         already = (
-            db.query(PromotionLog)
-            .filter(PromotionLog.user_id == user.id, PromotionLog.rule_id == rule.id)
-            .first()
+            db.query(PromotionLog).filter(PromotionLog.user_id == user.id, PromotionLog.rule_id == rule.id).first()
         )
         if already:
             continue
 
         # Check if user has certificates for every required course.
-        required_course_ids = set(
+        required_course_ids = {
             row[0]
             for row in db.query(PromotionRuleRequirement.course_id)
             .filter(PromotionRuleRequirement.rule_id == rule.id)
             .all()
-        )
+        }
         if not required_course_ids:
             continue  # A rule with no requirements should not trigger promotion.
 

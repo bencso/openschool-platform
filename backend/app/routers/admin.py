@@ -224,9 +224,7 @@ def create_promotion_rule(
         raise HTTPException(status_code=400, detail="At least one course is required")
 
     # Validate that all course_ids exist.
-    existing = set(
-        row[0] for row in db.query(Course.id).filter(Course.id.in_(data.course_ids)).all()
-    )
+    existing = {row[0] for row in db.query(Course.id).filter(Course.id.in_(data.course_ids)).all()}
     missing = set(data.course_ids) - existing
     if missing:
         raise HTTPException(status_code=400, detail=f"Course IDs not found: {sorted(missing)}")
@@ -285,17 +283,15 @@ def update_promotion_rule(
     if data.course_ids is not None:
         if not data.course_ids:
             raise HTTPException(status_code=400, detail="At least one course is required")
-        existing = set(
-            row[0] for row in db.query(Course.id).filter(Course.id.in_(data.course_ids)).all()
-        )
+        existing = {row[0] for row in db.query(Course.id).filter(Course.id.in_(data.course_ids)).all()}
         missing = set(data.course_ids) - existing
         if missing:
             raise HTTPException(status_code=400, detail=f"Course IDs not found: {sorted(missing)}")
 
         # Replace requirements.
-        db.query(PromotionRuleRequirement).filter(
-            PromotionRuleRequirement.rule_id == rule.id
-        ).delete(synchronize_session=False)
+        db.query(PromotionRuleRequirement).filter(PromotionRuleRequirement.rule_id == rule.id).delete(
+            synchronize_session=False
+        )
         for cid in data.course_ids:
             db.add(PromotionRuleRequirement(rule_id=rule.id, course_id=cid))
 
@@ -328,13 +324,7 @@ def list_promotion_log(
 ):
     """List promotion log entries (most recent first)."""
     total = db.query(PromotionLog).count()
-    entries = (
-        db.query(PromotionLog)
-        .order_by(PromotionLog.promoted_at.desc())
-        .offset(skip)
-        .limit(limit)
-        .all()
-    )
+    entries = db.query(PromotionLog).order_by(PromotionLog.promoted_at.desc()).offset(skip).limit(limit).all()
     return {
         "total": total,
         "data": [
