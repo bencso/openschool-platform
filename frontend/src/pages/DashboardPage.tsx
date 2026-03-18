@@ -171,7 +171,11 @@ export default function DashboardPage() {
         <h1 style={{ margin: 0 }}>Dashboard</h1>
         {user && (
           <span className={`role-badge role-badge--${user.role}`}>
-            {user.role === 'admin' ? '🛡️ Admin' : user.role === 'mentor' ? '🎓 Mentor' : '📚 Tanuló'}
+            {user.role === 'admin'
+              ? '🛡️ Admin'
+              : user.role === 'mentor'
+                ? '🎓 Mentor'
+                : '📚 Tanuló'}
           </span>
         )}
       </div>
@@ -190,8 +194,8 @@ export default function DashboardPage() {
       <div className="card" style={{ marginBottom: 20, padding: 16 }}>
         <h3 style={{ marginTop: 0 }}>🔗 Discord összekapcsolás</h3>
         <p style={{ fontSize: '0.9rem', color: '#666', margin: '4px 0 12px' }}>
-          Add meg a Discord felhasználói ID-dat a szerepkör szinkronizáláshoz.
-          Beállítások → Haladó → Fejlesztői mód → jobb klikk a nevedre → ID másolása.
+          Add meg a Discord felhasználói ID-dat a szerepkör szinkronizáláshoz. Beállítások → Haladó
+          → Fejlesztői mód → jobb klikk a nevedre → ID másolása.
         </p>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
           <input
@@ -231,7 +235,9 @@ export default function DashboardPage() {
           </button>
         </div>
         {discordMsg && (
-          <p style={{ color: discordMsg.includes('!') ? 'green' : 'red', marginTop: 8 }}>{discordMsg}</p>
+          <p style={{ color: discordMsg.includes('!') ? 'green' : 'red', marginTop: 8 }}>
+            {discordMsg}
+          </p>
         )}
       </div>
 
